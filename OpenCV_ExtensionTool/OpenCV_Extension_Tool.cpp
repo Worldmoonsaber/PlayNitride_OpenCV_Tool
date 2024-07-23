@@ -160,18 +160,24 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 			_Angle -= 180;
 	}
 
+	float minArea = (minrect.size.height + 1) * (minrect.size.width + 1);//擬合結果其實是內縮的 所以要+1
 
+	_minRectHeight = minrect.size.height + 1;
+	_minRectWidth = minrect.size.width + 1;
 
-	float minArea = (minrect.size.height + 1) * (minrect.size.width + 1);//擬合結果其實是內縮的
-
-	_Height = minrect.size.height + 1;
-	_Width = minrect.size.width + 1;
-
-	if (_Height > _Width)
-		_AspectRatio = _Height / _Width;
+	if (_minRectHeight > _minRectWidth)
+	{
+		_AspectRatio = _minRectHeight / _minRectWidth;
+		_Ra = _minRectHeight;
+		_Rb = _minRectWidth;
+	}
 	else
-		_AspectRatio = _Width  / _Height;
+	{
+		_AspectRatio = _minRectWidth / _minRectHeight;
+		_Rb = _minRectHeight;
+		_Ra = _minRectWidth;
 
+	}
 
 	if (minArea > _area)
 		_rectangularity = minArea / _area;
@@ -208,14 +214,14 @@ float BlobInfo::Rectangularity()
 	return _rectangularity;
 }
 
-float BlobInfo::Height()
+float BlobInfo::minRectHeight()
 {
-	return _Height;
+	return _minRectHeight;
 }
 
-float BlobInfo::Width()
+float BlobInfo::minRectWidth()
 {
-	return _Width;
+	return _minRectWidth;
 }
 
 float BlobInfo::Angle()
@@ -236,4 +242,22 @@ vector<Point> BlobInfo::Points()
 vector<Point> BlobInfo::contour()
 {
 	return _contour;
+}
+
+/// <summary>
+/// 長軸
+/// </summary>
+/// <returns></returns>
+float BlobInfo::Ra()
+{
+	return _Ra;
+}
+
+/// <summary>
+/// 短軸
+/// </summary>
+/// <returns></returns>
+float BlobInfo::Rb()
+{
+	return _Rb;
 }

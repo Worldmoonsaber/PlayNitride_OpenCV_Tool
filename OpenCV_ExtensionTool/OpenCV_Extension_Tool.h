@@ -25,11 +25,14 @@ public:
     float Circularity();
     Point2f Center();
     float Rectangularity();
-    float Height();
-    float Width();
+    float minRectHeight();
+    float minRectWidth();
     float Angle();
+    float AspectRatio();
     vector<Point> Points();
     vector<Point> contour();
+    float Ra();
+    float Rb();
 private:
 
     int _area = -1;
@@ -45,10 +48,15 @@ private:
     int _YminBound = -1;
     int _XmaxBound = -1;
     int _YmaxBound = -1;
-    float _Width = -1;
-    float _Height = -1;
+    float _minRectWidth = -1;
+    float _minRectHeight = -1;
     float _Angle = -1;
-
+    /// <summary>
+    /// ªø¼e¤ñ
+    /// </summary>
+    float _AspectRatio = -1;
+    float _Ra = -1;
+    float _Rb = -1;
 };
 
 vector<BlobInfo> RegionPartition(Mat& ImgBinary);
