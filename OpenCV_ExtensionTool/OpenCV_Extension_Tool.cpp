@@ -1,12 +1,22 @@
 
 #include "OpenCV_Extension_Tool.h"
 
-void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea)
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <param name="x"></param>
+/// <param name="y"></param>
+/// <param name="vectorPoint"></param>
+/// <param name="vContour"></param>
+/// <param name="maxArea"></param>
+/// <param name="isOverSizeExtension">輸入前必須設定為false</param>
+void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea,bool& isOverSizeExtension)
 {
 	if (maxArea < vectorPoint.size())
 		return;
 
-
+	uchar tagOverSize = 10;
 	uchar tagIdx = 101;
 
 	if (ImgBinary.at<uchar>(y, x) == 255)
@@ -47,8 +57,9 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 			}
 
 			if (ImgBinary.at<uchar>(j, i) == 255)
-				RegionFloodFill(ImgBinary, i, j, vectorPoint, vContour,maxArea);
-
+				RegionFloodFill(ImgBinary, i, j, vectorPoint, vContour, maxArea, isOverSizeExtension);
+			else if (ImgBinary.at<uchar>(j, i) == tagOverSize)
+				isOverSizeExtension = true;
 		}
 
 #pragma endregion
@@ -57,10 +68,16 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 		vContour.push_back(Point(x, y));
 }
 
+void RegionPaint(Mat& ImgBinary, vector<Point> vPoint, uchar PaintIdx)
+{
+	for (int i = 0; i < vPoint.size(); i++)
+		ImgBinary.at<uchar>(vPoint[i].y, vPoint[i].x) = PaintIdx;
+}
 
 vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea)
 {
 	vector<BlobInfo> lst;
+	uchar tagOverSize = 10;
 
 	Mat ImgTag = ImgBinary.clone();
 
@@ -68,40 +85,30 @@ vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea)
 		for (int j = 0; j < ImgBinary.rows; j++)
 		{
 			int val = ImgTag.at<uchar>(j, i);
+			bool isOverSizeExtension = false;
 
 			if (val == 255)
 			{
 				vector<Point> vArea;
 				vector<Point> vContour;
+				RegionFloodFill(ImgTag, i, j, vArea, vContour, maxArea, isOverSizeExtension);
 
-				RegionFloodFill(ImgTag, i, j, vArea, vContour, maxArea);
-
-				if (vArea.size() > maxArea)
+				if (vArea.size() > maxArea|| isOverSizeExtension)
 				{
-					for (int i = 0; i < vArea.size(); i++)
-						ImgTag.at<uchar>(vArea[i].y, vArea[i].x) = 0;
+					RegionPaint(ImgTag, vArea, tagOverSize);
 
-					//保留邊緣 以利留下奇怪的形狀 讓後續用條件濾除
-					for (int i = 0; i < vContour.size(); i++)
-						ImgTag.at<uchar>(vContour[i].y, vContour[i].x) = 255;
-
-					//這邊理論上被過濾的背景最後會形成一個 Circularity Rectangularity 數值非常奇怪
-					// minRectHeight minRectWidth 很大的 Region
-					//恨容易從條件中把它濾掉
 					continue;
 				}
 
 				BlobInfo regionInfo = BlobInfo(vArea, vContour);
 
-				for (int i = 0; i < vArea.size(); i++)
-					ImgTag.at<uchar>(vArea[i].y, vArea[i].x) = 0;
+				RegionPaint(ImgTag, vArea, 0);
 
 				lst.push_back(regionInfo);
 
 			}
 
 		}
-
 
 	ImgTag.release();
 

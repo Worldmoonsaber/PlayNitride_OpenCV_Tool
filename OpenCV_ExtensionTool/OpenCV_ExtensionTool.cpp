@@ -26,42 +26,6 @@ static void onMouse(int event, int x, int y, void* userInput)
 
 int main()
 {
-    /*
-    
-    Area ,Circularity, Convexity,Inertia 
-    可以單純用Blob處理 但是此處只會抓出符合條件區域的中心點
-    且沒有其他可以偵測的特徵
-
-
-    SimpleBlobDetector::Params params;
-
-    // Change thresholds
-    params.minThreshold = 10;
-    params.maxThreshold = 200;
-
-    // Filter by Area.
-    params.filterByArea = true;
-    params.minArea = 1500;
-
-    // Filter by Circularity
-    params.filterByCircularity = true;
-    params.minCircularity = 0.1;
-
-    // Filter by Convexity
-    params.filterByConvexity = true;
-    params.minConvexity = 0.87;
-
-    // Filter by Inertia
-    params.filterByInertia = true;
-    params.minInertiaRatio = 0.01;
-
-    */
-
-
-
-
-
-
     std::cout << "Hello World!\n";
     //測試程式碼
 
@@ -69,9 +33,6 @@ int main()
 
     imgXXXX = imread("test3.jpg");
     Mat ttt;
-//    imgXXXX = imread("C:\\Sample Image\\TestSample_SR1\\13.bmp");
-
-
 
     cvtColor(imgXXXX, imgXXXX, COLOR_RGB2GRAY, 1);
 
@@ -82,8 +43,6 @@ int main()
 
     cv::morphologyEx(ttt, ttt, MORPH_CLOSE, element, Point(-1, -1));
 
-
-
     //------測試 BLOB
 
     int gray = 10;
@@ -91,7 +50,7 @@ int main()
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
     //將所有連通區域切割 並萃取各區域的屬性
-    vector<BlobInfo> lst= RegionPartition(ttt,10000);
+    vector<BlobInfo> lst= RegionPartition(ttt,20000);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 

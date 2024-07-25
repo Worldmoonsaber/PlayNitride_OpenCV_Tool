@@ -13,7 +13,7 @@
 using namespace cv;
 using namespace std;
 
-void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea);
+void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea, bool& isOverSizeExtension);
 
 class BlobInfo
 {
