@@ -67,7 +67,7 @@ int main()
 
     Mat imgXXXX;
 
-    imgXXXX = imread("C:\\Users\\Playuser\\Downloads\\OpenCV_ExtensionTool\\OpenCV_ExtensionTool\\OpenCV_ExtensionTool\\test.jpg");
+    imgXXXX = imread("test3.jpg");
     Mat ttt;
 //    imgXXXX = imread("C:\\Sample Image\\TestSample_SR1\\13.bmp");
 
@@ -91,7 +91,7 @@ int main()
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
     //將所有連通區域切割 並萃取各區域的屬性
-    vector<BlobInfo> lst= RegionPartition(ttt);
+    vector<BlobInfo> lst= RegionPartition(ttt,10000);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 

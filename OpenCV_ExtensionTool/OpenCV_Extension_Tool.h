@@ -13,7 +13,7 @@
 using namespace cv;
 using namespace std;
 
-void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour);
+void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea);
 
 class BlobInfo
 {
@@ -22,16 +22,39 @@ public:
 
     void Release();
     int Area();
+
+    /// <summary>
+    ///  1 ~ 0.0   1:完美圓形
+    /// </summary>
+    /// <returns></returns>
     float Circularity();
     Point2f Center();
+    /// <summary>
+    ///  1 ~ 0.0   1:完美矩形
+    /// </summary>
+    /// <returns></returns>
     float Rectangularity();
     float minRectHeight();
     float minRectWidth();
     float Angle();
+    /// <summary>
+    /// 長寬比
+    /// </summary>
+    /// <returns></returns>
     float AspectRatio();
     vector<Point> Points();
     vector<Point> contour();
+
+    /// <summary>
+    /// 長軸長度
+    /// </summary>
+    /// <returns></returns>
     float Ra();
+
+    /// <summary>
+    /// 短軸長度
+    /// </summary>
+    /// <returns></returns>
     float Rb();
 private:
 
@@ -51,12 +74,15 @@ private:
     float _minRectWidth = -1;
     float _minRectHeight = -1;
     float _Angle = -1;
-    /// <summary>
-    /// 長寬比
-    /// </summary>
     float _AspectRatio = -1;
     float _Ra = -1;
     float _Rb = -1;
 };
 
-vector<BlobInfo> RegionPartition(Mat& ImgBinary);
+/// <summary>
+/// 
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <param name="maxArea">保護措施 如果不需要這麼大的Region 可以在這邊先行用條件濾掉 避免記憶體堆積問題產生</param>
+/// <returns></returns>
+vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea= INT_MAX-2);

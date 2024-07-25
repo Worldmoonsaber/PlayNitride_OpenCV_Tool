@@ -1,8 +1,12 @@
 
 #include "OpenCV_Extension_Tool.h"
 
-void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour)
+void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea)
 {
+	if (maxArea < vectorPoint.size())
+		return;
+
+
 	uchar tagIdx = 101;
 
 	if (ImgBinary.at<uchar>(y, x) == 255)
@@ -43,7 +47,7 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 			}
 
 			if (ImgBinary.at<uchar>(j, i) == 255)
-				RegionFloodFill(ImgBinary, i, j, vectorPoint, vContour);
+				RegionFloodFill(ImgBinary, i, j, vectorPoint, vContour,maxArea);
 
 		}
 
@@ -54,7 +58,7 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 }
 
 
-vector<BlobInfo> RegionPartition(Mat& ImgBinary)
+vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea)
 {
 	vector<BlobInfo> lst;
 
@@ -70,7 +74,22 @@ vector<BlobInfo> RegionPartition(Mat& ImgBinary)
 				vector<Point> vArea;
 				vector<Point> vContour;
 
-				RegionFloodFill(ImgTag, i, j, vArea, vContour);
+				RegionFloodFill(ImgTag, i, j, vArea, vContour, maxArea);
+
+				if (vArea.size() > maxArea)
+				{
+					for (int i = 0; i < vArea.size(); i++)
+						ImgTag.at<uchar>(vArea[i].y, vArea[i].x) = 0;
+
+					//保留邊緣 以利留下奇怪的形狀 讓後續用條件濾除
+					for (int i = 0; i < vContour.size(); i++)
+						ImgTag.at<uchar>(vContour[i].y, vContour[i].x) = 255;
+
+					//這邊理論上被過濾的背景最後會形成一個 Circularity Rectangularity 數值非常奇怪
+					// minRectHeight minRectWidth 很大的 Region
+					//恨容易從條件中把它濾掉
+					continue;
+				}
 
 				BlobInfo regionInfo = BlobInfo(vArea, vContour);
 
@@ -179,7 +198,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	}
 
-	if (minArea > _area)
+	if (minArea < _area)
 		_rectangularity = minArea / _area;
 	else
 		_rectangularity = _area / minArea;
