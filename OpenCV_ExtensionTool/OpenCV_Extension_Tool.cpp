@@ -209,6 +209,9 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	}
 
+	_bulkiness = CV_PI * _Ra * _Rb / _area*1.0;
+
+
 	if (minArea < _area)
 		_rectangularity = minArea / _area;
 	else
@@ -216,6 +219,17 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	_rectangularity = abs(_rectangularity);
 
+
+	_compactness = (1.0 * _contour.size()) * (1.0 * _contour.size()) / (4.0 * CV_PI * _area);
+
+	// _compactness 公式
+	//
+	// 
+	//  _compactness= (周長)^2/ (4*PI*面積)
+	//
+	//
+	//
+	//
 }
 
 void BlobInfo::Release()
@@ -310,4 +324,14 @@ int BlobInfo::Xmax()
 int BlobInfo::Ymax()
 {
 	return _YmaxBound;
+}
+
+float BlobInfo::Bulkiness()
+{
+	return _bulkiness;
+}
+
+float BlobInfo::Compactness()
+{
+	return _compactness;
 }

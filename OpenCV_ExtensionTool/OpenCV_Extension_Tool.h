@@ -62,6 +62,17 @@ public:
     int Xmax();
     int Ymax();
 
+    /// <summary>
+    /// ½´ÃP«×
+    /// </summary>
+    /// <returns></returns>
+    float Bulkiness();
+
+    /// <summary>
+    /// ºò½o«×
+    /// </summary>
+    /// <returns></returns>
+    float Compactness();
 private:
 
     int _area = -1;
@@ -83,6 +94,8 @@ private:
     float _AspectRatio = -1;
     float _Ra = -1;
     float _Rb = -1;
+    float _bulkiness = -1;
+    float _compactness = -1;
 };
 
 /// <summary>
