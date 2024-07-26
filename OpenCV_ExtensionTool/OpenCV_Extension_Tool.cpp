@@ -291,3 +291,23 @@ float BlobInfo::Rb()
 {
 	return _Rb;
 }
+
+int BlobInfo::Xmin()
+{
+	return _XminBound;
+}
+
+int BlobInfo::Ymin()
+{
+	return _YminBound;
+}
+
+int BlobInfo::Xmax()
+{
+	return _XmaxBound;
+}
+
+int BlobInfo::Ymax()
+{
+	return _YmaxBound;
+}

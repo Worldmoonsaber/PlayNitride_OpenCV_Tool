@@ -56,6 +56,12 @@ public:
     /// </summary>
     /// <returns></returns>
     float Rb();
+
+    int Xmin();
+    int Ymin();
+    int Xmax();
+    int Ymax();
+
 private:
 
     int _area = -1;
