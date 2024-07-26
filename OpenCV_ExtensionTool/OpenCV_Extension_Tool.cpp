@@ -227,7 +227,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 	// 
 	//  _compactness= (周長)^2/ (4*PI*面積)
 	//
-	//
+	//  可以推算出 理論上 目標物的 _compactness 數值 在用此數值進行過濾
 	//
 	//
 }
