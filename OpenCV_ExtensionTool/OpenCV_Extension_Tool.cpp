@@ -74,7 +74,7 @@ void RegionPaint(Mat& ImgBinary, vector<Point> vPoint, uchar PaintIdx)
 		ImgBinary.at<uchar>(vPoint[i].y, vPoint[i].x) = PaintIdx;
 }
 
-vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea)
+vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea, int minArea)
 {
 	vector<BlobInfo> lst;
 	uchar tagOverSize = 10;
@@ -96,7 +96,11 @@ vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea)
 				if (vArea.size() > maxArea|| isOverSizeExtension)
 				{
 					RegionPaint(ImgTag, vArea, tagOverSize);
-
+					continue;
+				}
+				else if (vArea.size() <= minArea)
+				{
+					RegionPaint(ImgTag, vArea, 0);
 					continue;
 				}
 
