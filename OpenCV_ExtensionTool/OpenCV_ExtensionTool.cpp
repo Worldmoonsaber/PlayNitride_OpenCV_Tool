@@ -50,7 +50,7 @@ int main()
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
     //將所有連通區域切割 並萃取各區域的屬性
-    vector<BlobInfo> lst= RegionPartition(ttt,20000);
+    vector<BlobInfo> lst= RegionPartition(ttt,99999,10);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 

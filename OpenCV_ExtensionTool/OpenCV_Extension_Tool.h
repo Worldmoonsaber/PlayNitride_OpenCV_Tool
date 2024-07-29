@@ -104,4 +104,4 @@ private:
 /// <param name="ImgBinary"></param>
 /// <param name="maxArea">保護措施 如果不需要這麼大的Region 可以在這邊先行用條件濾掉 避免記憶體堆積問題產生</param>
 /// <returns></returns>
-vector<BlobInfo> RegionPartition(Mat& ImgBinary,int maxArea= INT_MAX-2,int minArea=-1);
+vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea= INT_MAX-2,int minArea=-1);
