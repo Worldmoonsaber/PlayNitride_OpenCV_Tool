@@ -126,9 +126,15 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 
 }
 
+/// <summary>
+/// 有Bug 先不能用
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <param name="filter"></param>
+/// <returns></returns>
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 {
-
+	//---有Bug 先不能用
 	float maxArea = INT_MAX-2;
 	float minArea = -1;
 
