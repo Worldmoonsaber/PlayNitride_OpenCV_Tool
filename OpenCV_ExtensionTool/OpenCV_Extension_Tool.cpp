@@ -1,6 +1,13 @@
 
 #include "OpenCV_Extension_Tool.h"
 
+#include <ppl.h>
+#include <array>
+#include <sstream>
+#include <iostream>
+
+using namespace concurrency;
+
 /// <summary>
 /// 
 /// </summary>
@@ -36,7 +43,6 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 		{
 			if (i == x && y == j)
 				continue;
-
 
 			if (i < 0 || j < 0)
 			{
@@ -118,6 +124,81 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 	ImgBinary.release();
 	return lst;
 
+}
+
+vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
+{
+
+	float maxArea = INT_MAX-2;
+	float minArea = -1;
+
+	if (filter.IsEnableArea())
+	{
+		maxArea = filter.MaxArea();
+		minArea = filter.MinArea();
+	}
+
+	float Xmin = 0;
+	float Xmax = ImgBinary.cols;
+
+	if (filter.IsEnableXbound())
+	{
+		Xmax = filter.MaxXbound();
+		Xmin = filter.MinXbound();
+	}
+
+	float Ymin = 0;
+	float Ymax = ImgBinary.rows;
+
+	if (filter.IsEnableYbound())
+	{
+		Ymax = filter.MaxYbound();
+		Ymin = filter.MinYbound();
+	}
+
+
+
+	vector<BlobInfo> lst;
+	uchar tagOverSize = 10;
+
+	Mat ImgTag = ImgBinary.clone();
+
+	for (int i = Xmin; i < Xmin; i++)
+		for (int j = Ymin; j < Ymax; j++)
+		{
+			int val = ImgTag.at<uchar>(j, i);
+			bool isOverSizeExtension = false;
+
+			if (val == 255)
+			{
+				vector<Point> vArea;
+				vector<Point> vContour;
+				RegionFloodFill(ImgTag, i, j, vArea, vContour, maxArea, isOverSizeExtension);
+
+				if (vArea.size() > maxArea || isOverSizeExtension)
+				{
+					RegionPaint(ImgTag, vArea, tagOverSize);
+					continue;
+				}
+				else if (vArea.size() <= minArea)
+				{
+					RegionPaint(ImgTag, vArea, 0);
+					continue;
+				}
+
+				BlobInfo regionInfo = BlobInfo(vArea, vContour);
+
+				RegionPaint(ImgTag, vArea, 0);
+
+				lst.push_back(regionInfo);
+
+			}
+
+		}
+
+	ImgTag.release();
+	ImgBinary.release();
+	return lst;
 }
 
 BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
@@ -206,7 +287,6 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		_AspectRatio = _minRectWidth / _minRectHeight;
 		_Rb = _minRectHeight;
 		_Ra = _minRectWidth;
-
 	}
 
 	_bulkiness = CV_PI * _Ra * _Rb / _area*1.0;
@@ -218,7 +298,6 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		_rectangularity = _area / minArea;
 
 	_rectangularity = abs(_rectangularity);
-
 
 	_compactness = (1.0 * _contour.size()) * (1.0 * _contour.size()) / (4.0 * CV_PI * _area);
 
@@ -334,4 +413,73 @@ float BlobInfo::Bulkiness()
 float BlobInfo::Compactness()
 {
 	return _compactness;
+}
+
+BlobFilter::BlobFilter()
+{
+	FilterCondition condition1;
+	condition1.FeatureName = "area";
+	condition1.Enable = false;
+
+	FilterCondition condition2;
+	condition1.FeatureName = "xBound";
+	condition1.Enable = false;
+
+	FilterCondition condition3;
+	condition1.FeatureName = "yBound";
+	condition1.Enable = false;
+
+	map.insert(std::pair<string, FilterCondition>(condition1.FeatureName, condition1));
+	map.insert(std::pair<string, FilterCondition>(condition2.FeatureName, condition2));
+	map.insert(std::pair<string, FilterCondition>(condition3.FeatureName, condition3));
+}
+
+BlobFilter::~BlobFilter()
+{
+	map.clear();
+}
+
+bool BlobFilter::IsEnableArea()
+{
+	return map["area"].Enable;
+}
+
+float BlobFilter::MaxArea()
+{
+	return map["area"].MaximumValue;
+}
+
+float BlobFilter::MinArea()
+{
+	return map["area"].MinimumValue;
+}
+
+bool BlobFilter::IsEnableXbound()
+{
+	return map["xBound"].Enable;
+}
+
+float BlobFilter::MaxXbound()
+{
+	return map["xBound"].MaximumValue;
+}
+
+float BlobFilter::MinXbound()
+{
+	return map["xBound"].MinimumValue;
+}
+
+bool BlobFilter::IsEnableYbound()
+{
+	return map["yBound"].Enable;
+}
+
+float BlobFilter::MaxYbound()
+{
+	return map["yBound"].MaximumValue;
+}
+
+float BlobFilter::MinYbound()
+{
+	return map["yBound"].MinimumValue;
 }
