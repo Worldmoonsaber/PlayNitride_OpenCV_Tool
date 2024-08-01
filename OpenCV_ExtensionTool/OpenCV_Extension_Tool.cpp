@@ -134,10 +134,11 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 /// <returns></returns>
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 {
-	//---有Bug 先不能用
+
 	float maxArea = INT_MAX-2;
 	float minArea = -1;
 
+	bool isEnable = filter.IsEnableArea();
 	if (filter.IsEnableArea())
 	{
 		maxArea = filter.MaxArea();
@@ -169,7 +170,7 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 
 	Mat ImgTag = ImgBinary.clone();
 
-	for (int i = Xmin; i < Xmin; i++)
+	for (int i = Xmin; i < Xmax; i++)
 		for (int j = Ymin; j < Ymax; j++)
 		{
 			int val = ImgTag.at<uchar>(j, i);
@@ -426,14 +427,23 @@ BlobFilter::BlobFilter()
 	FilterCondition condition1;
 	condition1.FeatureName = "area";
 	condition1.Enable = false;
+	condition1.MaximumValue = INT16_MAX;
+	condition1.MinimumValue = INT16_MIN;
 
 	FilterCondition condition2;
-	condition1.FeatureName = "xBound";
-	condition1.Enable = false;
+	condition2.FeatureName = "xBound";
+	condition2.Enable = false;
+	condition2.MaximumValue = INT16_MAX;
+	condition2.MinimumValue = INT16_MIN;
 
 	FilterCondition condition3;
-	condition1.FeatureName = "yBound";
-	condition1.Enable = false;
+	condition3.FeatureName = "yBound";
+	condition3.Enable = false;
+	condition3.MaximumValue = INT16_MAX;
+	condition3.MinimumValue = INT16_MIN;
+
+
+
 
 	map.insert(std::pair<string, FilterCondition>(condition1.FeatureName, condition1));
 	map.insert(std::pair<string, FilterCondition>(condition2.FeatureName, condition2));
@@ -488,4 +498,49 @@ float BlobFilter::MaxYbound()
 float BlobFilter::MinYbound()
 {
 	return map["yBound"].MinimumValue;
+}
+
+void BlobFilter::SetEnableArea(bool enable)
+{
+	map["area"].Enable = enable;
+}
+
+void BlobFilter::SetMaxArea(float value)
+{
+	map["area"].MaximumValue = value;
+}
+
+void BlobFilter::SetMinArea(float value)
+{
+	map["area"].MinimumValue = value;
+}
+
+void BlobFilter::SetEnableXbound(bool enable)
+{
+	map["xBound"].Enable = enable;
+}
+
+void BlobFilter::SetMaxXbound(float value)
+{
+	map["xBound"].MaximumValue = value;
+}
+
+void BlobFilter::SetMinXbound(float value)
+{
+	map["xBound"].MinimumValue = value;
+}
+
+void BlobFilter::SetEnableYbound(bool enable)
+{
+	map["yBound"].Enable = enable;
+}
+
+void BlobFilter::SetMaxYbound(float value)
+{
+	map["yBound"].MaximumValue= value;
+}
+
+void BlobFilter::SetMinYbound(float value)
+{
+	map["yBound"].MinimumValue = value;
 }

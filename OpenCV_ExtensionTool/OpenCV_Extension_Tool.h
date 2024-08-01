@@ -128,6 +128,19 @@ public:
     float MinYbound();
 
 
+    void SetEnableArea(bool enable);
+    void SetMaxArea(float value);
+    void SetMinArea(float value);
+
+    void SetEnableXbound(bool enable);
+    void SetMaxXbound(float value);
+    void SetMinXbound(float value);
+
+    void SetEnableYbound(bool enable);
+    void SetMaxYbound(float value);
+    void SetMinYbound(float value);
+
+
 private:
     map<string, FilterCondition> map;
 };

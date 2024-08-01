@@ -31,15 +31,13 @@ int main()
 
     Mat imgXXXX;
 
-    imgXXXX = imread("test3.jpg");
+    imgXXXX = imread("C:\\Sample Image\\StampChip\\Cplus\\Stp0718\\7180127.bmp");
     Mat ttt;
 
-    cvtColor(imgXXXX, imgXXXX, COLOR_RGB2GRAY, 1);
+    cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
 
-    GaussianBlur(imgXXXX, imgXXXX, Size(3, 3), 1, 1);
-
-    threshold(imgXXXX, ttt, 200, 255, THRESH_BINARY);
-    Mat element = getStructuringElement(MORPH_RECT, Size(5,5));
+    threshold(ttt, ttt, 100, 255, THRESH_BINARY);
+    Mat element = getStructuringElement(MORPH_RECT, Size(50,50));
 
     cv::morphologyEx(ttt, ttt, MORPH_CLOSE, element, Point(-1, -1));
 
@@ -49,8 +47,25 @@ int main()
 
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
+
+    BlobFilter b_Filter = BlobFilter();
+
+    b_Filter.SetEnableArea(true);
+    b_Filter.SetMaxArea(200*100*1.5);
+    b_Filter.SetMinArea(200 * 100 * 0.1);
+
+    b_Filter.SetEnableXbound(true);
+    b_Filter.SetMaxXbound(3000);
+    b_Filter.SetMinXbound(2500);
+
+    b_Filter.SetEnableYbound(true);
+    b_Filter.SetMaxYbound(2000);
+    b_Filter.SetMinYbound(1000);
+
+
     //將所有連通區域切割 並萃取各區域的屬性
-    vector<BlobInfo> lst= RegionPartition(ttt,99999,10);
+    vector<BlobInfo> lst= RegionPartition(ttt, b_Filter);
+    //b_Filter.~BlobFilter();
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
@@ -64,10 +79,10 @@ int main()
 
     for (size_t i = 0; i < lst.size(); i++)
     {
-        Mat Demo = ttt.clone();
+        Mat Demo = imgXXXX.clone();
 
-        for (int j = 0; j < lst[i].Points().size(); j++)
-            Demo.at<uchar>(lst[i].Points()[j].y, lst[i].Points()[j].x) = 100;
+
+        circle(Demo, lst[i].Center(), 100, Scalar(0, 0, 255), 5);
 
         imshow("Img", Demo);
 
