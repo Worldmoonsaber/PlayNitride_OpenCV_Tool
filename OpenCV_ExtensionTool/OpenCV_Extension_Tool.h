@@ -140,9 +140,16 @@ public:
     void SetMaxYbound(float value);
     void SetMinYbound(float value);
 
+    void SetEnableGrayLevel(bool enable);
+    void SetMaxGrayLevel(float value);
+    void SetMinGrayLevel(float value);
+
 
 private:
     map<string, FilterCondition> map;
+
+    void _setMaxPokaYoke(string title, float value);
+    void _setMinPokaYoke(string title, float value);
 };
 
 

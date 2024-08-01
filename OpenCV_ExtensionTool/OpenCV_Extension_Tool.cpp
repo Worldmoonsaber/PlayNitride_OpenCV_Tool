@@ -442,6 +442,11 @@ BlobFilter::BlobFilter()
 	condition3.MaximumValue = INT16_MAX;
 	condition3.MinimumValue = INT16_MIN;
 
+	FilterCondition condition4;
+	condition4.FeatureName = "grayLevel";
+	condition4.Enable = false;
+	condition4.MaximumValue = 255;
+	condition4.MinimumValue = 0;
 
 
 
@@ -454,6 +459,25 @@ BlobFilter::~BlobFilter()
 {
 	map.clear();
 }
+
+void BlobFilter::_setMaxPokaYoke(string title, float value)
+{
+	if (map[title].MinimumValue < value)
+		map[title].MaximumValue = value;
+	else
+		map[title].MaximumValue = map[title].MinimumValue;
+}
+
+void BlobFilter::_setMinPokaYoke(string title, float value)
+{
+	if (map[title].MaximumValue > value)
+		map[title].MinimumValue = value;
+	else
+		map[title].MinimumValue = map[title].MaximumValue;
+}
+
+
+
 
 bool BlobFilter::IsEnableArea()
 {
@@ -507,12 +531,12 @@ void BlobFilter::SetEnableArea(bool enable)
 
 void BlobFilter::SetMaxArea(float value)
 {
-	map["area"].MaximumValue = value;
+	_setMaxPokaYoke("area", value);
 }
 
 void BlobFilter::SetMinArea(float value)
 {
-	map["area"].MinimumValue = value;
+	_setMinPokaYoke("area", value);
 }
 
 void BlobFilter::SetEnableXbound(bool enable)
@@ -522,12 +546,12 @@ void BlobFilter::SetEnableXbound(bool enable)
 
 void BlobFilter::SetMaxXbound(float value)
 {
-	map["xBound"].MaximumValue = value;
+	_setMaxPokaYoke("xBound", value);
 }
 
 void BlobFilter::SetMinXbound(float value)
 {
-	map["xBound"].MinimumValue = value;
+	_setMinPokaYoke("xBound", value);
 }
 
 void BlobFilter::SetEnableYbound(bool enable)
@@ -537,10 +561,32 @@ void BlobFilter::SetEnableYbound(bool enable)
 
 void BlobFilter::SetMaxYbound(float value)
 {
-	map["yBound"].MaximumValue= value;
+	_setMaxPokaYoke("yBound", value);
 }
 
 void BlobFilter::SetMinYbound(float value)
 {
-	map["yBound"].MinimumValue = value;
+	_setMinPokaYoke("yBound", value);
 }
+
+void BlobFilter::SetEnableGrayLevel(bool enable)
+{
+	map["grayLevel"].Enable = enable;
+}
+
+void BlobFilter::SetMaxGrayLevel(float value)
+{
+	if (value >= 0 && value <= 255 && value > map["grayLevel"].MinimumValue)
+		map["grayLevel"].MaximumValue = (int)value;
+	else
+		map["grayLevel"].MaximumValue = map["grayLevel"].MinimumValue;
+}
+
+void BlobFilter::SetMinGrayLevel(float value)
+{
+	if (value >= 0 && value <= 255 && value < map["grayLevel"].MaximumValue)
+		map["grayLevel"].MinimumValue = (int)value;
+	else
+		map["grayLevel"].MinimumValue = map["grayLevel"].MaximumValue;
+}
+
