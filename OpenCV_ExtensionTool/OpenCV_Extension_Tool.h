@@ -82,6 +82,13 @@ public:
     /// </summary>
     /// <returns></returns>
     float Compactness();
+
+    /// <summary>
+    /// 與 Circularity 有定義上的差別 這個屬性更適合偵測 中空圓環的圓環 圓環的 Roundness趨近於1 Circularity 0.1 左右
+    /// </summary>
+    /// <returns></returns>
+    float Roundness();
+
 private:
 
     int _area = -1;
@@ -105,6 +112,7 @@ private:
     float _Rb = -1;
     float _bulkiness = -1;
     float _compactness = -1;
+    float _roundness = -1;
 };
 
 class BlobFilter

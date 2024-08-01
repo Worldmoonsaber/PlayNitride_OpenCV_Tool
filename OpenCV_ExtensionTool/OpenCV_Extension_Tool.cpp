@@ -316,6 +316,41 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 	//  可以推算出 理論上 目標物的 _compactness 數值 在用此數值進行過濾
 	//
 	//
+
+	// _roundness;
+	// 
+
+	if (_contour.size() > 0)
+	{
+		float distance;
+
+		for (int i = 0; i < _contour.size(); i++)
+		{
+			float d = norm(_center - (Point2f)_contour[i]);
+			distance += d;
+		}
+		distance /= _contour.size();
+
+		float sigma;
+
+		float diff = 0;
+
+		for (int i = 0; i < _contour.size(); i++)
+		{
+			float d = norm(_center - (Point2f)_contour[i]);
+
+			diff+=(d - distance)* (d - distance);
+		}
+
+		diff = sqrt(diff);
+
+		sigma = diff / sqrt(_contour.size() * 1.0);
+
+
+		_roundness = 1 - sigma / distance;
+	}
+
+	
 }
 
 void BlobInfo::Release()
@@ -420,6 +455,11 @@ float BlobInfo::Bulkiness()
 float BlobInfo::Compactness()
 {
 	return _compactness;
+}
+
+float BlobInfo::Roundness()
+{
+	return _roundness;
 }
 
 BlobFilter::BlobFilter()
