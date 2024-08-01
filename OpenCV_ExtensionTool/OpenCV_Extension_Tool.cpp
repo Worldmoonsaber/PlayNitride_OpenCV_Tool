@@ -126,11 +126,13 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 
 }
 
+
+
 /// <summary>
-/// 有Bug 先不能用
+/// 
 /// </summary>
-/// <param name="ImgBinary"></param>
-/// <param name="filter"></param>
+/// <param name="ImgBinary">必須輸入二值化影像</param>
+/// <param name="filter">預先過濾條件之後想到會陸續增加</param>
 /// <returns></returns>
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 {
@@ -162,8 +164,6 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 		Ymax = filter.MaxYbound();
 		Ymin = filter.MinYbound();
 	}
-
-
 
 	vector<BlobInfo> lst;
 	uchar tagOverSize = 10;
