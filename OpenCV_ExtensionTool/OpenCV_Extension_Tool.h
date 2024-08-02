@@ -89,6 +89,8 @@ public:
     /// <returns></returns>
     float Roundness();
 
+    float Sides();
+
 private:
 
     int _area = -1;
@@ -113,6 +115,7 @@ private:
     float _bulkiness = -1;
     float _compactness = -1;
     float _roundness = -1;
+    float _sides = -1;
 };
 
 class BlobFilter

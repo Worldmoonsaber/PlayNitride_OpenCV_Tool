@@ -248,10 +248,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	for (int j = 0; j < vContour.size(); j++)
 	{
-		float xx = vContour[j].x - _center.x;
-		float yy = vContour[j].y - _center.y;
-
-		float len = sqrt((xx * xx + yy * yy));
+		float len =norm(_center - (Point2f)vContour[j]);
 
 		if (len > max_len)
 			max_len = len;
@@ -260,7 +257,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 			min_len = len;
 	}
 
-	_circularity = min_len / max_len;
+	_circularity = _area / (max_len* max_len*CV_PI);
 
 	if (vContour.size() == 0)
 		return;
@@ -322,7 +319,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	if (_contour.size() > 0)
 	{
-		float distance;
+		float distance=0;
 
 		for (int i = 0; i < _contour.size(); i++)
 		{
@@ -348,6 +345,9 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 
 		_roundness = 1 - sigma / distance;
+
+
+		_sides = (float)1.411 * pow((distance / sigma), (0.4724));
 	}
 
 	
@@ -460,6 +460,11 @@ float BlobInfo::Compactness()
 float BlobInfo::Roundness()
 {
 	return _roundness;
+}
+
+float BlobInfo::Sides()
+{
+	return _sides;
 }
 
 BlobFilter::BlobFilter()
