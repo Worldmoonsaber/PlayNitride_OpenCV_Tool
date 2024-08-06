@@ -290,7 +290,7 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		_Ra = _minRectWidth;
 	}
 
-	_bulkiness = CV_PI * _Ra * _Rb / _area*1.0;
+	_bulkiness = CV_PI * _Ra/2 * _Rb/2 / _area*1.0;
 
 
 	if (minArea < _area)
