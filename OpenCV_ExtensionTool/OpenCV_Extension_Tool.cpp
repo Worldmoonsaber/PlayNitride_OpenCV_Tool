@@ -1,13 +1,6 @@
 
 #include "OpenCV_Extension_Tool.h"
 
-#include <ppl.h>
-#include <array>
-#include <sstream>
-#include <iostream>
-
-using namespace concurrency;
-
 /// <summary>
 /// 
 /// </summary>
@@ -43,6 +36,7 @@ void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, v
 		{
 			if (i == x && y == j)
 				continue;
+
 
 			if (i < 0 || j < 0)
 			{
@@ -109,6 +103,9 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 					RegionPaint(ImgTag, vArea, 0);
 					continue;
 				}
+
+				if (vContour.size() == 0)
+					continue;
 
 				BlobInfo regionInfo = BlobInfo(vArea, vContour);
 
@@ -335,22 +332,18 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		for (int i = 0; i < _contour.size(); i++)
 		{
 			float d = norm(_center - (Point2f)_contour[i]);
-
 			diff+=(d - distance)* (d - distance);
 		}
 
 		diff = sqrt(diff);
 
 		sigma = diff / sqrt(_contour.size() * 1.0);
-
-
 		_roundness = 1 - sigma / distance;
-
-
 		_sides = (float)1.411 * pow((distance / sigma), (0.4724));
 	}
 
-	
+
+	// Moments openCV已經存在實作 沒有必要加入此類特徵 有需要在呼叫即可
 }
 
 void BlobInfo::Release()

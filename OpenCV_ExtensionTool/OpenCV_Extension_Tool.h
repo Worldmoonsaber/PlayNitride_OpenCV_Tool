@@ -4,11 +4,6 @@
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp> //mophorlogical operation
 #include<opencv2/core.hpp>
-#include <iostream>
-#include <numeric>
-#include <omp.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 using namespace cv;
 using namespace std;
@@ -162,7 +157,6 @@ private:
     void _setMaxPokaYoke(string title, float value);
     void _setMinPokaYoke(string title, float value);
 };
-
 
 /// <summary>
 /// 
