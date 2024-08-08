@@ -134,6 +134,7 @@ void RegionPaint(Mat& ImgBinary, vector<Point> vPoint, uchar PaintIdx)
 
 void RegionPaint(uchar* ptr, vector<Point> vPoint, uchar PaintIdx,int imgWidth)
 {
+	//<---此處加入平行運算需要額外的函式庫, UI端電腦環境不明,先不實作此類內容
 	for (int i = 0; i < vPoint.size(); i++)
 		ptr[vPoint[i].y * imgWidth + vPoint[i].x] = PaintIdx;
 }
@@ -687,11 +688,10 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary)
 /// 
 /// </summary>
 /// <param name="ImgBinary">必須輸入二值化影像</param>
-/// <param name="filter">預先過濾條件之後想到會陸續增加</param>
+/// <param name="filter">預先過濾條件之後想到會依照需求陸續增加</param>
 /// <returns></returns>
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 {
-
 	float maxArea = INT_MAX-2;
 	float minArea = 0;
 
@@ -725,40 +725,94 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 
 	Mat ImgTag = ImgBinary.clone();
 
+	uchar* _ptr = (uchar*)ImgTag.data;
+	int ww = ImgBinary.cols;
+	int hh = ImgBinary.rows;
+
+	BlobInfoThreadObject blobInfoThread;
+	blobInfoThread.Initialize();
+
 	for (int i = Xmin; i < Xmax; i++)
 		for (int j = Ymin; j < Ymax; j++)
 		{
-			int val = ImgTag.at<uchar>(j, i);
+			uchar val = _ptr[ww * j + i];
 			bool isOverSizeExtension = false;
 
 			if (val == 255)
 			{
 				vector<Point> vArea;
 				vector<Point> vContour;
-				RegionFloodFill(ImgTag, i, j, vArea, vContour, maxArea, isOverSizeExtension);
+				RegionFloodFill(_ptr, i, j, vArea, vContour, maxArea, isOverSizeExtension, ww, hh);
 
 				if (vArea.size() > maxArea || isOverSizeExtension)
 				{
-					RegionPaint(ImgTag, vArea, tagOverSize);
+					RegionPaint(_ptr, vArea, tagOverSize, ww);
 					continue;
 				}
 				else if (vArea.size() <= minArea)
 				{
-					RegionPaint(ImgTag, vArea, 0);
+					RegionPaint(_ptr, vArea, 0, ww);
 					continue;
 				}
-
-				BlobInfo regionInfo = BlobInfo(vArea, vContour);
-
-				RegionPaint(ImgTag, vArea, 0);
-
-				lst.push_back(regionInfo);
-
+				blobInfoThread.AddObject(vArea, vContour);
+				RegionPaint(_ptr, vArea, 0, ww);
 			}
-
 		}
+
+	blobInfoThread.WaitWorkDone();
+	lst = blobInfoThread.GetObj();
 
 	ImgTag.release();
 	ImgBinary.release();
 	return lst;
+}
+
+vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int minArea)
+{
+	vector<BlobInfo> lst;
+	uchar tagOverSize = 10;
+	Mat ImgTag = ImgBinary.clone();
+
+	uchar* _ptr = (uchar*)ImgTag.data;
+	int ww = ImgBinary.cols;
+	int hh = ImgBinary.rows;
+
+
+	for (int i = 0; i < ww; i++)
+		for (int j = 0; j < hh; j++)
+		{
+			uchar val = _ptr[ww * j + i];
+			bool isOverSizeExtension = false;
+
+			if (val == 255)
+			{
+				vector<Point> vArea;
+				vector<Point> vContour;
+				RegionFloodFill(_ptr, i, j, vArea, vContour, maxArea, isOverSizeExtension, ww, hh);
+
+				if (vArea.size() > maxArea || isOverSizeExtension)
+				{
+					RegionPaint(_ptr, vArea, tagOverSize, ww);
+					continue;
+				}
+				else if (vArea.size() <= minArea)
+				{
+					RegionPaint(_ptr, vArea, 0, ww);
+					continue;
+				}
+				BlobInfo info= BlobInfo(vArea, vContour);
+				lst.push_back(info);
+				RegionPaint(_ptr, vArea, 0, ww);
+			}
+		}
+
+	ImgTag.release();
+	ImgBinary.release();
+
+	return lst;
+}
+
+vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary)
+{
+	return RegionPartitionNonMultiThread(ImgBinary,INT16_MAX,0);
 }
