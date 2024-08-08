@@ -52,7 +52,7 @@ int main()
     //將所有連通區域切割 並萃取各區域的屬性
     //vector<BlobInfo> lst= RegionPartition(ttt,INT16_MAX,0);
     //b_Filter.~BlobFilter();
-    vector<BlobInfo> lst = RegionPartition(ttt, b_Filter);
+    vector<BlobInfo> lst = RegionPartitionNonMultiThread(ttt);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
