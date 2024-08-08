@@ -1,7 +1,6 @@
 
 #include "OpenCV_Extension_Tool.h"
 
-
 #pragma region Region 標記 功能 內部方法
 /// <summary>
 /// 
@@ -570,6 +569,28 @@ void BlobFilter::SetMinGrayLevel(float value)
 #pragma endregion
 
 #pragma region BlobInfoThreadObject 物件
+
+/// <summary>
+/// 用於多緒處理 BlobInfo物件 提升效率用
+/// </summary>
+class BlobInfoThreadObject
+{
+public:
+	BlobInfoThreadObject();
+	void Initialize();
+	void AddObject(vector<Point> vArea, vector<Point> vContour);
+	void WaitWorkDone();
+	vector<BlobInfo> GetObj();
+	~BlobInfoThreadObject();
+private:
+	static void thread_WorkContent(queue <tuple<vector<Point>, vector<Point>>>* queue, bool* _isFinished, vector<BlobInfo>* vResult, mutex* mutex);
+	thread thread_Work;
+	queue <tuple<vector<Point>, vector<Point>>> _QueueObj;
+	vector<BlobInfo> _result;
+	bool _isProcessWaitToFinished = false;
+	mutex mu;
+};
+
 BlobInfoThreadObject::BlobInfoThreadObject()
 {
 	_isProcessWaitToFinished = false;
@@ -626,7 +647,6 @@ void BlobInfoThreadObject::thread_WorkContent(queue <tuple<vector<Point>, vector
 			break;//工作完成
 	}
 }
-
 
 #pragma endregion
 

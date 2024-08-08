@@ -8,7 +8,6 @@
 using namespace cv;
 using namespace std;
 
-
 struct FilterCondition
 {
     string FeatureName;
@@ -165,6 +164,12 @@ private:
 vector<BlobInfo> RegionPartition(Mat ImgBinary, int maxArea, int minArea);//; int maxArea = INT_MAX - 2, int minArea = -1);目前直接使用吃預設值好像會出Bug避免錯誤使用先包起來
 vector<BlobInfo> RegionPartition(Mat ImgBinary);
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter);
+
+/// <summary>
+/// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <returns></returns>
 vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int minArea);
 /// <summary>
 /// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
@@ -173,25 +178,5 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int m
 /// <returns></returns>
 vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
 
-/// <summary>
-/// 用於多緒處理 BlobInfo物件 提升效率用
-/// </summary>
-class BlobInfoThreadObject
-{
-public:
-    BlobInfoThreadObject();
-    void Initialize();
-    void AddObject(vector<Point> vArea, vector<Point> vContour);
-    void WaitWorkDone();
-    vector<BlobInfo> GetObj();
-    ~BlobInfoThreadObject();
-private:
-    static void thread_WorkContent(queue <tuple<vector<Point>, vector<Point>>>* queue, bool* _isFinished, vector<BlobInfo>* vResult, mutex* mutex);
-    thread thread_Work;
-    queue <tuple<vector<Point>, vector<Point>>> _QueueObj;
-    vector<BlobInfo> _result;
-    bool _isProcessWaitToFinished = false;
-    mutex mu;
-};
 
 
