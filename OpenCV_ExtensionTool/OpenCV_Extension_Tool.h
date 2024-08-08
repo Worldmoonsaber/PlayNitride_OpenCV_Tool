@@ -169,4 +169,25 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary);
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter);
 
 
+/// <summary>
+/// 用於多緒處理 BlobInfo物件 提升效率用
+/// </summary>
+class BlobInfoThreadObject
+{
+public:
+    BlobInfoThreadObject();
+    void Initialize();
+    void AddObject(vector<Point> vArea, vector<Point> vContour);
+    void WaitWorkDone();
+    vector<BlobInfo> GetObj();
+    ~BlobInfoThreadObject();
+private:
+    static void thread_WorkContent(queue <tuple<vector<Point>, vector<Point>>>* queue, bool* _isFinished, vector<BlobInfo>* vResult, mutex* mutex);
+    thread thread_Work;
+    queue <tuple<vector<Point>, vector<Point>>> _QueueObj;
+    vector<BlobInfo> _result;
+    bool _isProcessWaitToFinished = false;
+    mutex mu;
+};
+
 

@@ -26,20 +26,16 @@ static void onMouse(int event, int x, int y, void* userInput)
 
 int main()
 {
-    std::cout << "Hello World!\n";
     //測試程式碼
 
     Mat imgXXXX;
 
-    imgXXXX = imread("C:\\Sample Image\\StampChip\\Cplus\\Stp0718\\7180127.bmp");
+    imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test4.bmp");
     Mat ttt;
 
     cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
 
-    threshold(ttt, ttt, 100, 255, THRESH_BINARY);
-    Mat element = getStructuringElement(MORPH_RECT, Size(50,50));
-
-    cv::morphologyEx(ttt, ttt, MORPH_CLOSE, element, Point(-1, -1));
+    threshold(ttt, ttt, 150, 255, THRESH_BINARY_INV);
 
     //------測試 BLOB
 
@@ -47,25 +43,16 @@ int main()
 
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
-
     BlobFilter b_Filter = BlobFilter();
 
-    b_Filter.SetEnableArea(true);
-    b_Filter.SetMaxArea(200*100*1.5);
-    b_Filter.SetMinArea(200 * 100 * 0.1);
-
-    b_Filter.SetEnableXbound(true);
-    b_Filter.SetMaxXbound(3000);
-    b_Filter.SetMinXbound(2500);
-
-    b_Filter.SetEnableYbound(true);
-    b_Filter.SetMaxYbound(2000);
-    b_Filter.SetMinYbound(1000);
-
+    b_Filter.SetEnableArea(false);
+    b_Filter.SetMaxArea(20000);
+    b_Filter.SetMinArea(100);
 
     //將所有連通區域切割 並萃取各區域的屬性
-    vector<BlobInfo> lst= RegionPartition(ttt, b_Filter);
+    //vector<BlobInfo> lst= RegionPartition(ttt,INT16_MAX,0);
     //b_Filter.~BlobFilter();
+    vector<BlobInfo> lst = RegionPartition(ttt, b_Filter);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
@@ -73,26 +60,13 @@ int main()
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
     std::cout << "calculate countingTime time is:: " << countingTime << endl;
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
-
     std::cout << "請按任意件切換選擇的區域" << countingTime << endl;
 
-
-    for (size_t i = 0; i < lst.size(); i++)
-    {
-        Mat Demo = imgXXXX.clone();
+    //cvtColor(ttt, ttt, COLOR_GRAY2RGB);
 
 
-        circle(Demo, lst[i].Center(), 100, Scalar(0, 0, 255), 5);
-
-        imshow("Img", Demo);
-
-        cv::waitKey(0);
-    }
-
-
-
-
-
+    //for (size_t i = 0; i < lst.size(); i++)
+    //    circle(ttt, lst[i].Center(), 2, Scalar(0, 0, 255), 1);
 
 
     //已測試 切割 210個 Region
@@ -100,6 +74,11 @@ int main()
     // 使用 RegionFloodFill  3ms 效率提升 8倍
     // 存取指標方式 14ms 反而比較慢 後續不採用
     // 只要有創建新影像 有進行影像操作 速度就快不起來
+
+
+    // 0808 測試
+    // RegionPartition(Mat ImgBinary, int maxArea, int minArea) 改成全指標方式存取 急速可以撐到 9.5ms 速度會在9.5~14之間飄移
+    // 影響速度變化的原因待查
 
 }
 
