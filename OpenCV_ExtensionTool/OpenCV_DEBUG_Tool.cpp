@@ -46,8 +46,26 @@ void saveFileParameter(string path, bool& isReadFileSucceed, vector<float> fPara
 
 }
 
-void GetAllFolderImage(string FolderPath, vector<string>& vStr)
+void GetAllFolderBmpImage(string FolderPath, vector<string>& vStr)
 {
+    intptr_t   hFile = 0;
+    struct _finddata_t fileinfo;
+    string p;
+    if ((hFile = _findfirst(p.assign(FolderPath).append("\\*.bmp").c_str(), &fileinfo)) != -1)//assign方法可以理解為先將原字串清空，然後賦予新的值作替換。
+    {
+        do
+        {
+            if ((fileinfo.attrib & _A_SUBDIR))//是否為資料夾
+            {
+                //----Do Nothing
+            }
+            else//非資料夾
+            {
+                vStr.push_back(p.assign(FolderPath).append("\\").append(fileinfo.name));
+            }
+        } while (_findnext(hFile, &fileinfo) == 0);
+        _findclose(hFile);
+    }
 
 }
 
@@ -70,7 +88,7 @@ private:
     Mat displayImage;
     cv::Point2f offset;
     Rect roiRect;
-    float scale;
+    float zoomFactor;
     string strTitle;
     vector<BlobInfo> vBlobList;
     int selectBlobIndex;
@@ -83,7 +101,7 @@ debugWindow::debugWindow()
 {
     selectBlobIndex = -1;
     offset = Point2f(0, 0);
-    scale = 1.0;
+    zoomFactor = 1.0;
     strTitle = "顯示圖片";
     isNeedRefresh = false;
 }
@@ -104,9 +122,11 @@ void debugWindow::onMouseStatic(int event, int x, int y, int flag, void* obj)
 
 void debugWindow::onMouse(int event, int x, int y, int flag)
 {
-    if (event == cv::EVENT_RBUTTONDOWN) {
-        int imgX = static_cast<int>((x) / scale);
-        int imgY = static_cast<int>((y) / scale);
+    int imgX = static_cast<int>(roiRect.x + (x) / zoomFactor);
+    int imgY = static_cast<int>(roiRect.y + (y) / zoomFactor);
+
+    if (event == cv::EVENT_RBUTTONDOWN) 
+    {
         if (imgX >= 0 && imgX < image1.cols && imgY >= 0 && imgY < image1.rows)
         {
             bool isFound = false;
@@ -139,8 +159,7 @@ void debugWindow::onMouse(int event, int x, int y, int flag)
     }
     else if (event == cv::EVENT_MBUTTONUP)
     {
-        int imgX = static_cast<int>((x) / scale);
-        int imgY = static_cast<int>((y) / scale);
+
     }
     else if (event == cv::EVENT_MBUTTONDOWN)
     {
@@ -199,7 +218,7 @@ void debugWindow::updateDisplayImage()
         }
     }
 
-    cv::resize(imageProcessing, displayImage, cv::Size(), scale, scale);
+    cv::resize(imageProcessing, displayImage, cv::Size(), zoomFactor, zoomFactor);
     cv::imshow(strTitle, displayImage);
     isNeedRefresh = false;
 }

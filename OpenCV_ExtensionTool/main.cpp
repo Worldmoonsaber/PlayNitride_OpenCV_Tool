@@ -15,20 +15,15 @@ using namespace cv;
 using namespace std;
 
 
-bool mouseClicked = false;
-
-static void onMouse(int event, int x, int y, void* userInput)
-{
-
-}
-
-
 
 int main()
 {
 
     Mat imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test.jpg");
     Mat ttt;
+
+    vector<string> vStr;
+    GetAllFolderBmpImage("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool", vStr);
 
     cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
 
