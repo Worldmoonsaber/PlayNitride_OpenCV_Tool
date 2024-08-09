@@ -9,7 +9,7 @@
 #include<opencv2/core.hpp>
 #include <numeric>
 #include "OpenCV_Extension_Tool.h"
-
+#include "OpenCV_DEBUG_Tool.h"
 
 using namespace cv;
 using namespace std;
@@ -26,16 +26,13 @@ static void onMouse(int event, int x, int y, void* userInput)
 
 int main()
 {
-    //測試程式碼
 
-    Mat imgXXXX;
-
-    imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test4.bmp");
+    Mat imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test.jpg");
     Mat ttt;
 
     cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
 
-    threshold(ttt, ttt, 150, 255, THRESH_BINARY_INV);
+    threshold(ttt, ttt, 150, 255, THRESH_BINARY);
 
     //------測試 BLOB
 
@@ -52,7 +49,7 @@ int main()
     //將所有連通區域切割 並萃取各區域的屬性
     //vector<BlobInfo> lst= RegionPartition(ttt,INT16_MAX,0);
     //b_Filter.~BlobFilter();
-    vector<BlobInfo> lst = RegionPartitionNonMultiThread(ttt);
+    vector<BlobInfo> lst = RegionPartition(ttt);
 
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
@@ -60,7 +57,8 @@ int main()
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
     std::cout << "calculate countingTime time is:: " << countingTime << endl;
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
-    std::cout << "請按任意件切換選擇的區域" << countingTime << endl;
+
+    ShowDebugWindow(imgXXXX, lst);
 
     //cvtColor(ttt, ttt, COLOR_GRAY2RGB);
 

@@ -45,3 +45,208 @@ void saveFileParameter(string path, bool& isReadFileSucceed, vector<float> fPara
     }
 
 }
+
+void GetAllFolderImage(string FolderPath, vector<string>& vStr)
+{
+
+}
+
+
+#pragma region debugWindow 類別
+
+class debugWindow
+{
+public:
+    debugWindow();
+    ~debugWindow();
+    void Run(Mat imageInput, vector<BlobInfo> BlobInfo);
+    void onMouse(int event, int x, int y, int flag);
+private:
+    static void onMouseStatic(int event, int x, int y, int flag, void* obj);
+    void updateDisplayImage();
+    Mat image1;
+    Mat image2;
+    Mat imageProcessing;
+    Mat displayImage;
+    cv::Point2f offset;
+    Rect roiRect;
+    float scale;
+    string strTitle;
+    vector<BlobInfo> vBlobList;
+    int selectBlobIndex;
+    int selectImageIndex;
+    void doKeyAction(int key);
+    bool isNeedRefresh;
+};
+
+debugWindow::debugWindow()
+{
+    selectBlobIndex = -1;
+    offset = Point2f(0, 0);
+    scale = 1.0;
+    strTitle = "顯示圖片";
+    isNeedRefresh = false;
+}
+
+debugWindow::~debugWindow()
+{
+    selectBlobIndex = -1;
+    vBlobList.clear();
+    image1.release();
+    displayImage.release();
+}
+
+void debugWindow::onMouseStatic(int event, int x, int y, int flag, void* obj)
+{
+    debugWindow* dbw = static_cast<debugWindow*>(obj);
+    dbw->onMouse(event, x, y, flag);
+}
+
+void debugWindow::onMouse(int event, int x, int y, int flag)
+{
+    if (event == cv::EVENT_RBUTTONDOWN) {
+        int imgX = static_cast<int>((x) / scale);
+        int imgY = static_cast<int>((y) / scale);
+        if (imgX >= 0 && imgX < image1.cols && imgY >= 0 && imgY < image1.rows)
+        {
+            bool isFound = false;
+            int _selectIndex = -1;
+            //---搜索範圍
+            for (int i = 0; i < vBlobList.size(); i++)
+            {
+                if (vBlobList[i].Xmax() < imgX || vBlobList[i].Xmin() > imgX)
+                    continue;
+
+                if (vBlobList[i].Ymax() < imgY || vBlobList[i].Ymin() > imgY)
+                    continue;
+
+                Point ptRef = Point(imgX, imgY);
+
+               for(int j=0;j< vBlobList[i].Points().size();j++)
+                   if (vBlobList[i].Points()[j] == ptRef)
+                   {
+                       _selectIndex = i;
+                       break;
+                   }
+
+               if (_selectIndex != -1)
+                   break;
+            }
+
+            selectBlobIndex = _selectIndex;
+            isNeedRefresh = true;
+        }
+    }
+    else if (event == cv::EVENT_MBUTTONUP)
+    {
+        int imgX = static_cast<int>((x) / scale);
+        int imgY = static_cast<int>((y) / scale);
+    }
+    else if (event == cv::EVENT_MBUTTONDOWN)
+    {
+
+    }
+
+}
+
+void debugWindow::updateDisplayImage()
+{
+
+    if (!imageProcessing.empty())
+        imageProcessing.release();
+
+    imageProcessing = image1.clone();
+
+    if (selectBlobIndex != -1)
+    {
+        // P.S.: 不能用drawContours 因為Harvie演算法抓出來的Contour不是連續,是隨機排列, 用drawContours 畫出來會很奇怪 
+        int channels=imageProcessing.channels();
+
+        for (int i = 0; i < vBlobList[selectBlobIndex].contour().size(); i++)
+        {
+            if (channels == 3)
+                imageProcessing.at<Vec3b>(vBlobList[selectBlobIndex].contour()[i].y, vBlobList[selectBlobIndex].contour()[i].x) = Vec3b(0, 0, 255);
+            else if (channels == 4)
+                imageProcessing.at<Vec4b>(vBlobList[selectBlobIndex].contour()[i].y, vBlobList[selectBlobIndex].contour()[i].x) = Vec4b(0, 0, 255, 255);
+            else
+                imageProcessing.at<uchar>(vBlobList[selectBlobIndex].contour()[i].y, vBlobList[selectBlobIndex].contour()[i].x) = 100;
+        }
+
+        if (isNeedRefresh)
+        {
+            system("cls");
+
+            std::cout << "--------選擇圖塊特徵----------" << endl;
+            std::cout << "面積          :" + to_string(vBlobList[selectBlobIndex].Area()) << endl;
+            std::cout << "長寬比        :" + to_string(vBlobList[selectBlobIndex].AspectRatio()) << endl;
+            std::cout << "Circularity   :" + to_string(vBlobList[selectBlobIndex].Circularity()) << endl;
+            std::cout << "Rectangularity:" + to_string(vBlobList[selectBlobIndex].Rectangularity()) << endl;
+            std::cout << "Bulkiness     :" + to_string(vBlobList[selectBlobIndex].Bulkiness()) << endl;
+            std::cout << "Compactness   :" + to_string(vBlobList[selectBlobIndex].Compactness()) << endl;
+            std::cout << "長軸          :" + to_string(vBlobList[selectBlobIndex].Ra()) << endl;
+            std::cout << "短軸          :" + to_string(vBlobList[selectBlobIndex].Rb()) << endl;
+            std::cout << "Roundness     :" + to_string(vBlobList[selectBlobIndex].Roundness()) << endl;
+            std::cout << "Sides         :" + to_string(vBlobList[selectBlobIndex].Sides()) << endl;
+        }
+
+    }
+    else
+    {
+        if (isNeedRefresh)
+        {
+            system("cls");
+            std::cout << "請在視窗上點選滑鼠右鍵選擇 已被標籤的圖塊" << endl;
+        }
+    }
+
+    cv::resize(imageProcessing, displayImage, cv::Size(), scale, scale);
+    cv::imshow(strTitle, displayImage);
+    isNeedRefresh = false;
+}
+
+void debugWindow::doKeyAction(int key)
+{
+    if (key == '1')
+        selectImageIndex = 1;
+    else if (key == '2')
+        selectImageIndex = 2;
+
+}
+
+void debugWindow::Run(Mat imageInput, vector<BlobInfo> BlobInfo)
+{
+    system("cls");
+
+    vBlobList = BlobInfo;
+
+    image1 = imageInput.clone();
+    cv::namedWindow(strTitle);
+    cv::setMouseCallback("顯示圖片", debugWindow::onMouseStatic, &image1);
+    roiRect = Rect(0,0, image1.cols,image1.rows);
+
+    while (true) {
+        updateDisplayImage();
+        int key = cv::waitKey(30);
+        if (key == 27) break; // 按下ESC鍵退出
+
+        doKeyAction(key);
+        //if (key == '+') scale *= 1.1; // 放大
+        //if (key == '-') scale /= 1.1; // 縮小
+        //if (key == 'w') offset.y -= 500; // 上移
+        //if (key == 's') offset.y += 500; // 下移
+        //if (key == 'a') offset.x -= 500; // 左移
+        //if (key == 'd') offset.x += 500; // 右移
+    }
+}
+
+#pragma endregion
+
+
+void ShowDebugWindow(Mat Img_Ref, vector<BlobInfo> BlobInfo)
+{
+    debugWindow dbW = debugWindow();
+    dbW.Run(Img_Ref, BlobInfo);
+    dbW.~debugWindow();
+}
+
+

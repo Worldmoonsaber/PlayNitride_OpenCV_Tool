@@ -20,7 +20,7 @@ class BlobInfo
 {
 public:
     BlobInfo(vector<Point> vArea, vector<Point> vContour);
-
+    BlobInfo();
     void Release();
     int Area();
 

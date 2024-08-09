@@ -283,10 +283,31 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 	// Moments openCV已經存在實作 沒有必要加入此類特徵 有需要在呼叫即可
 }
 
+BlobInfo::BlobInfo()
+{
+}
+
 void BlobInfo::Release()
 {
 	_contour.clear();
 	_points.clear();
+	_area = -1;
+	_circularity = -1;
+	_rectangularity = -1;
+	_XminBound = -1;
+	_YminBound = -1;
+	_XmaxBound = -1;
+	_YmaxBound = -1;
+	_minRectWidth = -1;
+	_minRectHeight = -1;
+	_Angle = -1;
+	_AspectRatio = -1;
+	_Ra = -1;
+	_Rb = -1;
+	_bulkiness = -1;
+	_compactness = -1;
+	_roundness = -1;
+	_sides = -1;
 }
 
 int BlobInfo::Area()
