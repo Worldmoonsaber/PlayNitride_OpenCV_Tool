@@ -450,80 +450,86 @@ BlobFilter::BlobFilter()
 
 
 
-	map.insert(std::pair<string, FilterCondition>(condition1.FeatureName, condition1));
-	map.insert(std::pair<string, FilterCondition>(condition2.FeatureName, condition2));
-	map.insert(std::pair<string, FilterCondition>(condition3.FeatureName, condition3));
+	mapConditions.insert(std::pair<string, FilterCondition>(condition1.FeatureName, condition1));
+	mapConditions.insert(std::pair<string, FilterCondition>(condition2.FeatureName, condition2));
+	mapConditions.insert(std::pair<string, FilterCondition>(condition3.FeatureName, condition3));
+	mapBool.insert(std::pair<string, bool>("SubRegion", true));
 }
 
 BlobFilter::~BlobFilter()
 {
-	map.clear();
+	mapConditions.clear();
 }
 
 void BlobFilter::_setMaxPokaYoke(string title, float value)
 {
-	if (map[title].MinimumValue < value)
-		map[title].MaximumValue = value;
+	if (mapConditions[title].MinimumValue < value)
+		mapConditions[title].MaximumValue = value;
 	else
-		map[title].MaximumValue = map[title].MinimumValue;
+		mapConditions[title].MaximumValue = mapConditions[title].MinimumValue;
 }
 
 void BlobFilter::_setMinPokaYoke(string title, float value)
 {
-	if (map[title].MaximumValue > value)
-		map[title].MinimumValue = value;
+	if (mapConditions[title].MaximumValue > value)
+		mapConditions[title].MinimumValue = value;
 	else
-		map[title].MinimumValue = map[title].MaximumValue;
+		mapConditions[title].MinimumValue = mapConditions[title].MaximumValue;
 }
 
 bool BlobFilter::IsEnableArea()
 {
-	return map["area"].Enable;
+	return mapConditions["area"].Enable;
 }
 
 float BlobFilter::MaxArea()
 {
-	return map["area"].MaximumValue;
+	return mapConditions["area"].MaximumValue;
 }
 
 float BlobFilter::MinArea()
 {
-	return map["area"].MinimumValue;
+	return mapConditions["area"].MinimumValue;
 }
 
 bool BlobFilter::IsEnableXbound()
 {
-	return map["xBound"].Enable;
+	return mapConditions["xBound"].Enable;
 }
 
 float BlobFilter::MaxXbound()
 {
-	return map["xBound"].MaximumValue;
+	return mapConditions["xBound"].MaximumValue;
 }
 
 float BlobFilter::MinXbound()
 {
-	return map["xBound"].MinimumValue;
+	return mapConditions["xBound"].MinimumValue;
 }
 
 bool BlobFilter::IsEnableYbound()
 {
-	return map["yBound"].Enable;
+	return mapConditions["yBound"].Enable;
 }
 
 float BlobFilter::MaxYbound()
 {
-	return map["yBound"].MaximumValue;
+	return mapConditions["yBound"].MaximumValue;
 }
 
 float BlobFilter::MinYbound()
 {
-	return map["yBound"].MinimumValue;
+	return mapConditions["yBound"].MinimumValue;
+}
+
+bool BlobFilter::IsEnableSubRegion()
+{
+	return mapBool["SubRegion"];
 }
 
 void BlobFilter::SetEnableArea(bool enable)
 {
-	map["area"].Enable = enable;
+	mapConditions["area"].Enable = enable;
 }
 
 void BlobFilter::SetMaxArea(float value)
@@ -538,7 +544,7 @@ void BlobFilter::SetMinArea(float value)
 
 void BlobFilter::SetEnableXbound(bool enable)
 {
-	map["xBound"].Enable = enable;
+	mapConditions["xBound"].Enable = enable;
 }
 
 void BlobFilter::SetMaxXbound(float value)
@@ -553,7 +559,7 @@ void BlobFilter::SetMinXbound(float value)
 
 void BlobFilter::SetEnableYbound(bool enable)
 {
-	map["yBound"].Enable = enable;
+	mapConditions["yBound"].Enable = enable;
 }
 
 void BlobFilter::SetMaxYbound(float value)
@@ -568,23 +574,28 @@ void BlobFilter::SetMinYbound(float value)
 
 void BlobFilter::SetEnableGrayLevel(bool enable)
 {
-	map["grayLevel"].Enable = enable;
+	mapConditions["grayLevel"].Enable = enable;
 }
 
 void BlobFilter::SetMaxGrayLevel(float value)
 {
-	if (value >= 0 && value <= 255 && value > map["grayLevel"].MinimumValue)
-		map["grayLevel"].MaximumValue = (int)value;
+	if (value >= 0 && value <= 255 && value > mapConditions["grayLevel"].MinimumValue)
+		mapConditions["grayLevel"].MaximumValue = (int)value;
 	else
-		map["grayLevel"].MaximumValue = map["grayLevel"].MinimumValue;
+		mapConditions["grayLevel"].MaximumValue = mapConditions["grayLevel"].MinimumValue;
 }
 
 void BlobFilter::SetMinGrayLevel(float value)
 {
-	if (value >= 0 && value <= 255 && value < map["grayLevel"].MaximumValue)
-		map["grayLevel"].MinimumValue = (int)value;
+	if (value >= 0 && value <= 255 && value < mapConditions["grayLevel"].MaximumValue)
+		mapConditions["grayLevel"].MinimumValue = (int)value;
 	else
-		map["grayLevel"].MinimumValue = map["grayLevel"].MaximumValue;
+		mapConditions["grayLevel"].MinimumValue = mapConditions["grayLevel"].MaximumValue;
+}
+
+void BlobFilter::SetEnableSubRegion(bool enable)
+{
+	mapBool["SubRegion"] = enable;
 }
 
 #pragma endregion
@@ -856,4 +867,11 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int m
 vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary)
 {
 	return RegionPartitionNonMultiThread(ImgBinary,INT16_MAX,0);
+}
+
+vector<BlobInfo> RegionPartitionNewMethod(Mat ImgBinary, BlobFilter filter)
+{
+	//https://blog.csdn.net/qinglingLS/article/details/106270095
+	// 準備用拓樸的方式重構方法
+	return vector<BlobInfo>();
 }

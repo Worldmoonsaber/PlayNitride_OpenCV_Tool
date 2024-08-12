@@ -130,6 +130,8 @@ public:
     float MaxYbound();
     float MinYbound();
 
+    bool IsEnableSubRegion();
+
 
     void SetEnableArea(bool enable);
     void SetMaxArea(float value);
@@ -147,9 +149,11 @@ public:
     void SetMaxGrayLevel(float value);
     void SetMinGrayLevel(float value);
 
+    void SetEnableSubRegion(bool enable);
 
 private:
-    map<string, FilterCondition> map;
+    map<string, FilterCondition> mapConditions;
+    map<string, bool> mapBool;
 
     void _setMaxPokaYoke(string title, float value);
     void _setMinPokaYoke(string title, float value);
@@ -178,5 +182,12 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int m
 /// <returns></returns>
 vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
 
+
+/// <summary>
+/// 有新方法 重構中
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <returns></returns>
+vector<BlobInfo> RegionPartitionNewMethod(Mat ImgBinary, BlobFilter filter);
 
 

@@ -125,6 +125,12 @@ void debugWindow::onMouse(int event, int x, int y, int flag)
     int imgX = static_cast<int>(roiRect.x + (x) / zoomFactor);
     int imgY = static_cast<int>(roiRect.y + (y) / zoomFactor);
 
+
+    Point ptLU = Point(roiRect.x, roiRect.y);
+    Point ptRD = Point(roiRect.x+ roiRect.width, roiRect.y+ roiRect.height);
+
+
+
     if (event == cv::EVENT_RBUTTONDOWN) 
     {
         if (imgX >= 0 && imgX < image1.cols && imgY >= 0 && imgY < image1.rows)
@@ -157,13 +163,49 @@ void debugWindow::onMouse(int event, int x, int y, int flag)
             isNeedRefresh = true;
         }
     }
-    else if (event == cv::EVENT_MBUTTONUP)
+    else if (event == cv::EVENT_MOUSEHWHEEL)
     {
+        //int delta = getMouseWheelDelta(flag);
+
+        //if(delta>0)
+        //    zoomFactor *= 1.05;
+        //else
+        //    zoomFactor /= 1.05;
+
+        //int d_left=imgX- roiRect.x;
+        //int d_right= roiRect.x+ roiRect.width- imgX;
+        //int d_up= imgY- roiRect.y;
+        //int d_down= roiRect.y + roiRect.height - imgY;
+
+        //int ww=(d_left+ d_right) / zoomFactor;
+        //int hh = (d_up + d_down) / zoomFactor;
+
+        //roiRect = Rect(imgX - d_left / zoomFactor, imgY - d_up / zoomFactor,ww ,hh );
+        //resize(image1, image1, Size(), zoomFactor, zoomFactor);
 
     }
-    else if (event == cv::EVENT_MBUTTONDOWN)
+    else if (event == cv::EVENT_MBUTTONDBLCLK)
     {
+        //zoomFactor /= 1.1;
 
+        //int d_left = imgX - roiRect.x;
+        //int d_right = roiRect.x + roiRect.width - imgX;
+        //int d_up = imgY - roiRect.y;
+        //int d_down = roiRect.y + roiRect.height - imgY;
+
+        //int ww = (d_left + d_right) / zoomFactor;
+        //int hh = (d_up + d_down) / zoomFactor;
+
+        //roiRect = Rect(imgX - d_left / zoomFactor, imgY - d_up / zoomFactor, ww, hh);
+
+        //zoomFactor /= 1.1;
+
+
+        //if (zoomFactor < 1)
+        //{
+        //    zoomFactor = 1;
+        //    roiRect = Rect(0, 0, image1.cols, image1.rows);
+        //}
     }
 
 }
@@ -218,7 +260,13 @@ void debugWindow::updateDisplayImage()
         }
     }
 
-    cv::resize(imageProcessing, displayImage, cv::Size(), zoomFactor, zoomFactor);
+
+    Mat m_ROI = imageProcessing(roiRect);
+
+    float sz = image1.cols * 1.0 / m_ROI.cols*1.0;
+
+    cv::resize(m_ROI, displayImage, cv::Size(), sz, sz);
+
     cv::imshow(strTitle, displayImage);
     isNeedRefresh = false;
 }
@@ -229,6 +277,41 @@ void debugWindow::doKeyAction(int key)
         selectImageIndex = 1;
     else if (key == '2')
         selectImageIndex = 2;
+
+    if (key == '+')
+        zoomFactor = 1.05;
+    else if (key == '-')
+        zoomFactor /=1.05;
+
+    if (key=='+' || key=='-')
+    {
+        //Point center = Point(roiRect.x + roiRect.width / 2, roiRect.y + roiRect.height / 2);
+
+        //float sz;
+        //if (key == '+')
+        //    sz = 1.05;
+        //else
+        //    sz = 1/1.05;
+
+
+        //int ww = roiRect.width * sz;
+        //int hh = roiRect.height * sz;
+
+
+        //roiRect = Rect(center.x - ww / 2, center.y - hh / 2, ww, hh);
+        //int d_left=imgX- roiRect.x;
+//int d_right= roiRect.x+ roiRect.width- imgX;
+//int d_up= imgY- roiRect.y;
+//int d_down= roiRect.y + roiRect.height - imgY;
+
+//int ww=(d_left+ d_right) / zoomFactor;
+//int hh = (d_up + d_down) / zoomFactor;
+
+//roiRect = Rect(imgX - d_left / zoomFactor, imgY - d_up / zoomFactor,ww ,hh );
+//resize(image1, image1, Size(), zoomFactor, zoomFactor);
+
+    }
+
 
 }
 
@@ -245,7 +328,7 @@ void debugWindow::Run(Mat imageInput, vector<BlobInfo> BlobInfo)
 
     while (true) {
         updateDisplayImage();
-        int key = cv::waitKey(30);
+        int key = cv::waitKey(10);
         if (key == 27) break; // «ö¤UESCÁä°h¥X
 
         doKeyAction(key);
