@@ -18,21 +18,15 @@ using namespace std;
 
 int main()
 {
-
     Mat imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test.jpg");
     Mat ttt;
 
-    vector<string> vStr;
-    GetAllFolderBmpImage("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool", vStr);
-
     cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
-
     threshold(ttt, ttt, 150, 255, THRESH_BINARY);
 
     //------測試 BLOB
 
     int gray = 10;
-
     auto TimeStart = std::chrono::high_resolution_clock::now();
     
     BlobFilter b_Filter = BlobFilter();
@@ -44,8 +38,10 @@ int main()
     //將所有連通區域切割 並萃取各區域的屬性
     //vector<BlobInfo> lst= RegionPartition(ttt,INT16_MAX,0);
     //b_Filter.~BlobFilter();
-    vector<BlobInfo> lst = RegionPartition(ttt);
+    //vector<BlobInfo> lst = RegionPartition(ttt);
 
+    //vector<BlobInfo> lst = RegionPartition(ttt, b_Filter);
+    vector<BlobInfo> lst = RegionPartitionTopology(ttt, b_Filter);
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
     double countingTime = std::chrono::duration<double, std::milli>(TimeEnd - TimeStart).count();
@@ -54,16 +50,8 @@ int main()
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
 
     ShowDebugWindow(imgXXXX, lst);
-
-    //cvtColor(ttt, ttt, COLOR_GRAY2RGB);
-
-
-    //for (size_t i = 0; i < lst.size(); i++)
-    //    circle(ttt, lst[i].Center(), 2, Scalar(0, 0, 255), 1);
-
-
-    //已測試 切割 210個 Region
-    //純粹用洪水法分區 26ms
+    ////已測試 切割 210個 Region
+    ////純粹用洪水法分區 26ms
     // 使用 RegionFloodFill  3ms 效率提升 8倍
     // 存取指標方式 14ms 反而比較慢 後續不採用
     // 只要有創建新影像 有進行影像操作 速度就快不起來
@@ -73,6 +61,8 @@ int main()
     // RegionPartition(Mat ImgBinary, int maxArea, int minArea) 改成全指標方式存取 急速可以撐到 9.5ms 速度會在9.5~14之間飄移
     // 影響速度變化的原因待查
 
+    //  0815 拓樸學實現
+    //
 }
 
 

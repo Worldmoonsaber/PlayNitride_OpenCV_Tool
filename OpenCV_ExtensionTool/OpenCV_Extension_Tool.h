@@ -21,6 +21,8 @@ class BlobInfo
 public:
     BlobInfo(vector<Point> vArea, vector<Point> vContour);
     BlobInfo();
+    BlobInfo(Mat ImgRegion);
+    void CaculateBlob(vector<Point> vArea, vector<Point> vContour);
     void Release();
     int Area();
 
@@ -188,6 +190,6 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
 /// </summary>
 /// <param name="ImgBinary"></param>
 /// <returns></returns>
-vector<BlobInfo> RegionPartitionNewMethod(Mat ImgBinary, BlobFilter filter);
+vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary, BlobFilter filter);
 
 

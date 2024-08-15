@@ -144,10 +144,34 @@ void RegionPaint(uchar* ptr, vector<Point> vPoint, uchar PaintIdx,int imgWidth)
 #pragma region BlobInfo 物件
 BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 {
+	CaculateBlob(vArea, vContour);
+}
+
+BlobInfo::BlobInfo()
+{
+}
+
+BlobInfo::BlobInfo(Mat ImgRegion)
+{
+	vector<vector<Point>> vContourArr;
+	findContours(ImgRegion, vContourArr, RETR_LIST, CHAIN_APPROX_NONE);
+	vector<Point> vContour;
+	
+	for (int i = 0; i < vContourArr.size(); i++)
+		vContour.insert(vContour.end(), vContourArr[i].begin(), vContourArr[i].end());
+
+	vector<Point> vArea;
+	findNonZero(ImgRegion, vArea);
+	CaculateBlob(vArea, vContour);
+
+	ImgRegion.release();
+}
+
+void BlobInfo::CaculateBlob(vector<Point> vArea, vector<Point> vContour)
+{
 	_contour = vContour;
 	_points = vArea;
 	_area = vArea.size();
-
 
 	float x_sum = 0, y_sum = 0;
 
@@ -197,7 +221,6 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		return;
 
 	RotatedRect minrect = minAreaRect(vContour);
-
 	_Angle = minrect.angle;
 
 	while (_Angle < 0 && _Angle>180)
@@ -210,7 +233,6 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 	}
 
 	float minArea = (minrect.size.height + 1) * (minrect.size.width + 1);//擬合結果其實是內縮的 所以要+1
-
 	_minRectHeight = minrect.size.height + 1;
 	_minRectWidth = minrect.size.width + 1;
 
@@ -229,14 +251,12 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 
 	_bulkiness = CV_PI * _Ra / 2 * _Rb / 2 / _area * 1.0;
 
-
 	if (minArea < _area)
 		_rectangularity = minArea / _area;
 	else
 		_rectangularity = _area / minArea;
 
 	_rectangularity = abs(_rectangularity);
-
 	_compactness = (1.0 * _contour.size()) * (1.0 * _contour.size()) / (4.0 * CV_PI * _area);
 
 	// _compactness 公式
@@ -260,10 +280,9 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 			float d = norm(_center - (Point2f)_contour[i]);
 			distance += d;
 		}
+
 		distance /= _contour.size();
-
 		float sigma;
-
 		float diff = 0;
 
 		for (int i = 0; i < _contour.size(); i++)
@@ -273,18 +292,12 @@ BlobInfo::BlobInfo(vector<Point> vArea, vector<Point> vContour)
 		}
 
 		diff = sqrt(diff);
-
 		sigma = diff / sqrt(_contour.size() * 1.0);
 		_roundness = 1 - sigma / distance;
 		_sides = (float)1.411 * pow((distance / sigma), (0.4724));
 	}
 
-
 	// Moments openCV已經存在實作 沒有必要加入此類特徵 有需要在呼叫即可
-}
-
-BlobInfo::BlobInfo()
-{
 }
 
 void BlobInfo::Release()
@@ -869,9 +882,121 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary)
 	return RegionPartitionNonMultiThread(ImgBinary,INT16_MAX,0);
 }
 
-vector<BlobInfo> RegionPartitionNewMethod(Mat ImgBinary, BlobFilter filter)
+
+void RegionPartitionTopologySubLayerAnalysis(cv::Size sz,int layer,int curIndex, vector<vector<Point>> vContour, vector<Vec4i> vhi,vector<BlobInfo>& lstBlob)
 {
+	int type = layer % 2;
+	//--- 0 此層為Region
+	//--- 1 此層為挖空區
+
+	if (type == 0)
+	{
+		Mat img = Mat(sz, CV_8UC1);
+		//----沒有子階層
+		fillConvexPoly(img, vContour[curIndex], Scalar(255, 255, 255));
+
+		//---刪除子階層
+		int idx = vhi[curIndex].val[2];
+		vector<int> subIndx;
+
+		if (idx != -1)
+		{
+			while (true)
+			{
+				fillConvexPoly(img, vContour[idx], Scalar(0, 0, 0));
+
+				if (vhi[idx].val[2] != -1)
+					subIndx.push_back(vhi[idx].val[2]);
+
+				if (vhi[idx].val[0] == -1)
+					break;
+
+				idx = vhi[idx].val[0];
+			}
+		}
+
+		BlobInfo blob = BlobInfo(img);
+		lstBlob.push_back(blob);
+
+		for (int i = 0; i < subIndx.size(); i++)
+			RegionPartitionTopologySubLayerAnalysis(sz, layer + 1, subIndx[i], vContour, vhi, lstBlob);
+	}
+	else
+	{
+		//---挖空區域 觀察是否存在 子區域
+
+		int idx = vhi[curIndex].val[2];
+		vector<int> subIndx;
+
+		if (idx != -1)
+		{
+			while (true)
+			{
+				if (vhi[idx].val[2] != -1)
+					subIndx.push_back(vhi[idx].val[2]);
+
+				if (vhi[idx].val[0] == -1)
+					break;
+
+				idx = vhi[idx].val[0];
+			}
+		}
+
+		for (int i = 0; i < subIndx.size(); i++)
+			RegionPartitionTopologySubLayerAnalysis(sz, layer + 1, subIndx[i], vContour, vhi, lstBlob);
+
+	}
+}
+
+
+/// <summary>
+///  實測結果比較慢 (理論上應該要比較快) 待釐清
+/// </summary>
+/// <param name="ImgBinary"></param>
+/// <param name="filter"></param>
+/// <returns></returns>
+vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary, BlobFilter filter)
+{
+	vector<BlobInfo> vRes;
 	//https://blog.csdn.net/qinglingLS/article/details/106270095
 	// 準備用拓樸的方式重構方法
-	return vector<BlobInfo>();
+
+	vector<vector<Point>> vContour;
+	vector<Vec4i> vhi;
+	//
+	//  [下一個,上一個,子層,父層]
+	//
+	findContours(ImgBinary, vContour, vhi, RETR_CCOMP, CHAIN_APPROX_NONE);
+
+	int layer = 0;
+
+	int i = 0;
+	while (true)
+	{
+		if (vhi[i].val[2] == -1)
+		{
+			Mat img = Mat(ImgBinary.size(), CV_8UC1);
+			//----沒有子階層
+			fillConvexPoly(img, vContour[i], Scalar(255, 255, 255));
+			BlobInfo blob = BlobInfo(img);
+			vRes.push_back(blob);
+			img.release();
+		}
+		else
+		{
+			//----有階層 待扣除坑洞區域
+			RegionPartitionTopologySubLayerAnalysis(ImgBinary.size(),0, i, vContour, vhi, vRes);
+		}
+
+
+		if (vhi[i].val[0] == -1)
+			break;
+
+		i = vhi[i].val[0];
+	}
+
+	return vRes;
 }
+
+
+

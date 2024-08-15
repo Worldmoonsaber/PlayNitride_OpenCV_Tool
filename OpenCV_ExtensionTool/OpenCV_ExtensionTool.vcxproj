@@ -132,6 +132,11 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>C:\OpenCV\build\x64\vc16\lib\opencv_world4100.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <HeapReserveSize>
+      </HeapReserveSize>
+      <StackReserveSize>50000000000000</StackReserveSize>
+      <StackCommitSize>50000000000000</StackCommitSize>
+      <LargeAddressAware>false</LargeAddressAware>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,9 +158,8 @@
       </HeapReserveSize>
       <HeapCommitSize>
       </HeapCommitSize>
-      <StackReserveSize>300000000</StackReserveSize>
-      <StackCommitSize>
-      </StackCommitSize>
+      <StackReserveSize>2000000000</StackReserveSize>
+      <StackCommitSize>2000000000</StackCommitSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
