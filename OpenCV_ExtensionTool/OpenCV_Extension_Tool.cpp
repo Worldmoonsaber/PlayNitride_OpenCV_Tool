@@ -2,72 +2,6 @@
 #include "OpenCV_Extension_Tool.h"
 
 #pragma region Region 標記 功能 內部方法
-/// <summary>
-/// 
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <param name="x"></param>
-/// <param name="y"></param>
-/// <param name="vectorPoint"></param>
-/// <param name="vContour"></param>
-/// <param name="maxArea"></param>
-/// <param name="isOverSizeExtension">輸入前必須設定為false</param>
-void RegionFloodFill(Mat& ImgBinary, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour,int maxArea,bool& isOverSizeExtension)
-{
-	if (maxArea < vectorPoint.size())
-		return;
-
-	uchar tagOverSize = 10;
-	uchar tagIdx = 101;
-
-	if (ImgBinary.at<uchar>(y, x) == 255)
-	{
-		ImgBinary.at<uchar>(y, x) = tagIdx;
-		vectorPoint.push_back(Point(x, y));
-	}
-	else if (ImgBinary.at<uchar>(y, x) == tagIdx)
-		return;
-
-	int edgesSides = 0;
-
-#pragma region 單一Region 較大時 容易出現資料堆積錯誤 專案屬性要調整
-
-	for (int j = y - 1; j <= y + 1; j++)
-		for (int i = x - 1; i <= x + 1; i++)
-		{
-			if (i == x && y == j)
-				continue;
-
-
-			if (i < 0 || j < 0)
-			{
-				edgesSides++;
-				continue;
-			}
-
-			if (i >= ImgBinary.cols || j >= ImgBinary.rows)
-			{
-				edgesSides++;
-				continue;
-			}
-
-			if (ImgBinary.at<uchar>(j, i) == 0)
-			{
-				edgesSides++;
-				continue;
-			}
-
-			if (ImgBinary.at<uchar>(j, i) == 255)
-				RegionFloodFill(ImgBinary, i, j, vectorPoint, vContour, maxArea, isOverSizeExtension);
-			else if (ImgBinary.at<uchar>(j, i) == tagOverSize)
-				isOverSizeExtension = true;
-		}
-
-#pragma endregion
-
-	if (edgesSides > 1 && edgesSides < 8)
-		vContour.push_back(Point(x, y));
-}
 
 void RegionFloodFill(uchar* ptr, int x, int y, vector<Point>& vectorPoint, vector<Point>& vContour, int maxArea, bool& isOverSizeExtension,int width,int height)
 {
@@ -125,19 +59,12 @@ void RegionFloodFill(uchar* ptr, int x, int y, vector<Point>& vectorPoint, vecto
 		vContour.push_back(Point(x, y));
 }
 
-void RegionPaint(Mat& ImgBinary, vector<Point> vPoint, uchar PaintIdx)
-{
-	for (int i = 0; i < vPoint.size(); i++)
-		ImgBinary.at<uchar>(vPoint[i].y, vPoint[i].x) = PaintIdx;
-}
-
 void RegionPaint(uchar* ptr, vector<Point> vPoint, uchar PaintIdx,int imgWidth)
 {
 	//<---此處加入平行運算需要額外的函式庫, UI端電腦環境不明,先不實作此類內容
 	for (int i = 0; i < vPoint.size(); i++)
 		ptr[vPoint[i].y * imgWidth + vPoint[i].x] = PaintIdx;
 }
-
 
 #pragma endregion
 
