@@ -48,9 +48,12 @@ void RegionFloodFill(uchar* ptr, int x, int y, vector<Point>& vectorPoint, vecto
 			}
 
 			if (ptr[i + width * j] == 255)
-				RegionFloodFill(ptr, i, j, vectorPoint, vContour, maxArea, isOverSizeExtension, width,height);
+				RegionFloodFill(ptr, i, j, vectorPoint, vContour, maxArea, isOverSizeExtension, width, height);
 			else if (ptr[i + width * j] == tagOverSize)
 				isOverSizeExtension = true;
+			else if (ptr[i + width * j] == tagIdx)
+				continue;
+
 		}
 
 #pragma endregion
@@ -126,6 +129,8 @@ void BlobInfo::CaculateBlob(vector<Point> vArea, vector<Point> vContour)
 
 	}
 
+	_Width = _XmaxBound - _XminBound + 1;
+	_Height = _YmaxBound - _YminBound + 1;
 	_center = Point2f(x_sum / vArea.size(), y_sum / vArea.size());
 
 	float min_len = _area;
@@ -336,6 +341,16 @@ int BlobInfo::Xmax()
 int BlobInfo::Ymax()
 {
 	return _YmaxBound;
+}
+
+int BlobInfo::Width()
+{
+	return _Width;
+}
+
+int BlobInfo::Height()
+{
+	return _Height;
 }
 
 float BlobInfo::Bulkiness()
@@ -927,3 +942,81 @@ vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary, BlobFilter filter)
 
 
 
+
+
+
+void thread_Content(Mat* img, int maxArea, int minArea, int starY, int endY , vector<BlobInfo>* vResult, vector<BlobInfo>* vEdge)
+{
+	//vector<BlobInfo> lst;
+	uchar tagOverSize = 10;
+	Mat ImgTag = img->clone();
+
+	uchar* _ptr = (uchar*)ImgTag.data;
+	int ww = img->cols;
+	int hh = img->rows;
+
+	BlobInfoThreadObject blobInfoThread;
+	blobInfoThread.Initialize();
+
+	for (int i = 0; i < ww; i++)
+		for (int j = starY; j < endY; j++)
+		{
+			uchar val = _ptr[ww * j + i];
+			bool isOverSizeExtension = false;
+
+			if (val == 255)
+			{
+				vector<Point> vArea;
+				vector<Point> vContour;
+				RegionFloodFill(_ptr, i, j, vArea, vContour, maxArea, isOverSizeExtension, ww, hh);
+
+				if (vArea.size() > maxArea || isOverSizeExtension)
+				{
+					RegionPaint(_ptr, vArea, tagOverSize, ww);
+					continue;
+				}
+				else if (vArea.size() <= minArea)
+				{
+					RegionPaint(_ptr, vArea, 0, ww);
+					continue;
+				}
+				blobInfoThread.AddObject(vArea, vContour);
+				RegionPaint(_ptr, vArea, 0, ww);
+			}
+		}
+
+	blobInfoThread.WaitWorkDone();
+	vResult[0] = blobInfoThread.GetObj();
+
+}
+
+
+//--經過初步測試效益不高
+//vector<BlobInfo> RegionPartition2(Mat ImgBinary)
+//{
+//	vector<BlobInfo> result;
+//
+//	vector<thread> vThread;
+//
+//	Mat img = ImgBinary.clone();
+//	
+//	int max = INT16_MAX;
+//	int min = INT16_MIN;
+//
+//	int mid = (int)(0.5 * (img.rows));
+//
+//
+//	vector<BlobInfo> vResult1; 
+//	vector<BlobInfo> vEdge1;
+//	vector<BlobInfo> vResult2; 
+//	vector<BlobInfo> vEdge2;
+//	//thread thr1(thread_Content, &ImgBinary, INT16_MAX, INT16_MIN, 0, mid, &vResult1, &vEdge1);
+//
+//	int endY = img.rows;
+//	thread thr2(thread_Content, &ImgBinary, INT16_MAX, 0,mid,endY, &vResult2, &vEdge2);
+//
+//	//thr1.join();
+//	thr2.join();
+//
+//	return vResult2;
+//}

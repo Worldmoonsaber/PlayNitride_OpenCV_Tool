@@ -64,7 +64,8 @@ public:
     int Ymin();
     int Xmax();
     int Ymax();
-
+    int Width();
+    int Height();
     /// <summary>
     /// 蓬鬆度
     /// </summary>
@@ -110,6 +111,8 @@ private:
     float _compactness = -1;
     float _roundness = -1;
     float _sides = -1;
+    float _Width = -1;
+    float _Height = -1;
 };
 
 class BlobFilter
@@ -186,10 +189,14 @@ vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
 
 
 /// <summary>
-/// 有新方法 重構中
+/// 理論上可行 但是速度太慢
 /// </summary>
 /// <param name="ImgBinary"></param>
 /// <returns></returns>
 vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary, BlobFilter filter);
 
 
+
+
+//----待測試影像切割成多張計算 Region 最後再合併跨區的Region
+vector<BlobInfo> RegionPartition2(Mat ImgBinary);
