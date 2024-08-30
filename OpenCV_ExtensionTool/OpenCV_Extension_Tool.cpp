@@ -640,6 +640,7 @@ void BlobInfoThreadObject::thread_WorkContent(queue <tuple<vector<Point>, vector
 vector<BlobInfo> RegionPartition(Mat ImgBinary,int maxArea, int minArea)
 {
 	vector<BlobInfo> lst;
+	lst.reserve(100);
 	uchar tagOverSize = 10;
 	Mat ImgTag = ImgBinary.clone();
 
@@ -777,6 +778,7 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter)
 vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int minArea)
 {
 	vector<BlobInfo> lst;
+	lst.reserve(100);
 	uchar tagOverSize = 10;
 	Mat ImgTag = ImgBinary.clone();
 
