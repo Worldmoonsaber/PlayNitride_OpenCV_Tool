@@ -23,6 +23,9 @@ public:
     BlobInfo(vector<Point> vArea, vector<Point> vContour);
     BlobInfo();
     BlobInfo(Mat ImgRegion);
+    BlobInfo(vector<Point> vContour);
+    BlobInfo(vector<Point> vMainContour,vector<vector<Point>> vHollowContour);
+
     void CaculateBlob(vector<Point> vArea, vector<Point> vContour);
     void Release();
     int Area();
@@ -87,6 +90,19 @@ public:
 
     float Sides();
 
+
+    /// <summary>
+    /// Topology 才有用的屬性
+    /// </summary>
+    /// <returns></returns>
+    vector<vector<Point>> contourHollow();
+
+    /// <summary>
+    /// Topology 才有用的屬性
+    /// </summary>
+    /// <returns></returns>
+    vector<Point> contourMain();
+
 private:
 
     int _area = -1;
@@ -114,6 +130,10 @@ private:
     float _sides = -1;
     float _Width = -1;
     float _Height = -1;
+
+    vector<Point> _contourMain;
+    vector<vector<Point>> _contourHollow;
+
 };
 
 class BlobFilter
@@ -176,28 +196,8 @@ vector<BlobInfo> RegionPartition(Mat ImgBinary);
 vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter);
 
 /// <summary>
-/// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
+/// 速度與記憶體使用量都在可接受範圍 建議使用這個方法
 /// </summary>
 /// <param name="ImgBinary"></param>
 /// <returns></returns>
-vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int minArea);
-/// <summary>
-/// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <returns></returns>
-vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
-
-
-/// <summary>
-/// 理論上可行 但是速度太慢
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <returns></returns>
-vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary, BlobFilter filter);
-
-
-
-
-//----待測試影像切割成多張計算 Region 最後再合併跨區的Region
-vector<BlobInfo> RegionPartition2(Mat ImgBinary);
+vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary);

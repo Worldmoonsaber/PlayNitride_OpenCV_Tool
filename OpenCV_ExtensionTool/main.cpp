@@ -18,38 +18,58 @@ using namespace std;
 
 int main()
 {
-    Mat imgXXXX = imread("C:\\Git\\Code\\OpenCV_Tool\\OpenCV_ExtensionTool\\test.jpg");
+    //Mat imgXXXX = imread("C:\\Git\\ResolutionCaculator\\WinFormResolCalibrator\\WinFormResolCalibrator\\bin\\Debug\\net8.0-windows7.0\\Debug_10-01-59.bmp");
     Mat ttt;
 
-    cvtColor(imgXXXX, ttt, COLOR_RGB2GRAY, 1);
-    threshold(ttt, ttt, 150, 255, THRESH_BINARY);
+    Mat imgXXXX = imread("C:\\Image\\Uchip\\L5\\20230613\\62001.bmp");
+    Mat rawimg = imread("C:\\Image\\Pair Chip\\20240830 PN177 chips image\\3_I140.bmp");
 
-    //------測試 BLOB
+    Mat Gimg;
+    Mat ImgThres,ImgThres2;
+    cv::cvtColor(rawimg, Gimg, COLOR_RGB2GRAY);
 
-    int gray = 10;
-    auto TimeStart = std::chrono::high_resolution_clock::now();
+    adaptiveThreshold(Gimg, ImgThres, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
+    adaptiveThreshold(Gimg, ImgThres2, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
+
+    //cv::medianBlur(adptThres, ImgThres, 7);
+    Mat Kcomopen = Mat::ones(Size(10, 10), CV_8UC1);  //Size(10,5)
+    Mat Kcomclose = Mat::ones(Size(5, 5), CV_8UC1);  //Size(10,5)
     
-    BlobFilter b_Filter = BlobFilter();
+    cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
+    cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
 
-    b_Filter.SetEnableArea(false);
-    b_Filter.SetMaxArea(20000);
-    b_Filter.SetMinArea(100);
+    cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
+    cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
 
-    //將所有連通區域切割 並萃取各區域的屬性
-    //vector<BlobInfo> lst= RegionPartition(ttt,INT16_MAX,0);
-    //b_Filter.~BlobFilter();
-    //vector<BlobInfo> lst = RegionPartition(ttt);
+    
+    Mat merge = ImgThres + ImgThres2;
+    Mat Kcomclose2 = Mat::ones(Size(3, 3), CV_8UC1);  //Size(10,5)
+    cv::morphologyEx(merge, merge, cv::MORPH_CLOSE, Kcomclose2, Point(-1, -1), 1);//1 //2
 
-    //vector<BlobInfo> lst = RegionPartition(ttt, b_Filter);
-    vector<BlobInfo> lst = RegionPartitionTopology(ttt, b_Filter);
+    auto TimeStart = std::chrono::high_resolution_clock::now();
+
+    vector<BlobInfo> lst = RegionPartitionTopology(merge);
+
     auto TimeEnd = std::chrono::high_resolution_clock::now();
+
+    vector<vector<Point>> vContour;
+    for (int u = 0; u < lst.size(); u++)
+    {
+        vContour.push_back(lst[u].contour());
+    }
+
+
+    drawContours(merge, vContour, -1, Scalar(100, 100, 100), -1);
+
+
 
     double countingTime = std::chrono::duration<double, std::milli>(TimeEnd - TimeStart).count();
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
     std::cout << "calculate countingTime time is:: " << countingTime << endl;
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
 
-    ShowDebugWindow(imgXXXX, lst);
+
+    //ShowDebugWindow(imgXXXX, lst);
     ////已測試 切割 210個 Region
     ////純粹用洪水法分區 26ms
     // 使用 RegionFloodFill  3ms 效率提升 8倍
@@ -63,6 +83,8 @@ int main()
 
     //  0815 拓樸學實現
     //
+    // 0909 拓樸學開發出花費時間 在可以接受範圍的實作結果
+    system("pause");
 }
 
 
