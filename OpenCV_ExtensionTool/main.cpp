@@ -47,15 +47,25 @@ int main()
     cv::morphologyEx(merge, merge, cv::MORPH_CLOSE, Kcomclose2, Point(-1, -1), 1);//1 //2
 
     auto TimeStart = std::chrono::high_resolution_clock::now();
-
     vector<BlobInfo> lst = RegionPartitionTopology(merge);
-
     auto TimeEnd = std::chrono::high_resolution_clock::now();
 
-    vector<vector<Point>> vContour;
+
+    vector<BlobInfo> lstU;
+
     for (int u = 0; u < lst.size(); u++)
     {
-        vContour.push_back(lst[u].contour());
+        if(lst[u].Width()>100)
+            lstU.push_back(lst[u]);
+    }
+
+
+
+
+    vector<vector<Point>> vContour;
+    for (int u = 0; u < lstU.size(); u++)
+    {
+        vContour.push_back(lstU[u].contour());
     }
 
 
