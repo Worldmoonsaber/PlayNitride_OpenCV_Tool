@@ -677,24 +677,27 @@ vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary)
 	int layer = 0;
 	int i = 0;
 
-	while (true)
+	if (vhi.size() > 0)
 	{
-		if (vhi[i].val[2] == -1)
+		while (true)
 		{
-			//----沒有子階層
-			BlobInfo obj = BlobInfo(vContour[i]);
-			vRes.push_back(obj);
-		}
-		else
-		{
-			//----有階層 待扣除坑洞區域
-			RegionPartitionTopologySubLayerAnalysis(0, i, vContour, vhi, vRes);
-		}
+			if (vhi[i].val[2] == -1)
+			{
+				//----沒有子階層
+				BlobInfo obj = BlobInfo(vContour[i]);
+				vRes.push_back(obj);
+			}
+			else
+			{
+				//----有階層 待扣除坑洞區域
+				RegionPartitionTopologySubLayerAnalysis(0, i, vContour, vhi, vRes);
+			}
 
-		if (vhi[i].val[0] == -1)
-			break;
+			if (vhi[i].val[0] == -1)
+				break;
 
-		i = vhi[i].val[0];
+			i = vhi[i].val[0];
+		}
 	}
 
 	return vRes;
