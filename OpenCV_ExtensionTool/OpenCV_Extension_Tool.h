@@ -129,14 +129,6 @@ private:
 };
 
 /// <summary>
-/// 
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <param name="maxArea">保護措施 如果不需要這麼大的Region 可以在這邊先行用條件濾掉 避免記憶體堆積問題產生</param>
-/// <returns></returns>
-vector<BlobInfo> RegionPartition(Mat ImgBinary, int maxArea, int minArea);//; int maxArea = INT_MAX - 2, int minArea = -1);目前直接使用吃預設值好像會出Bug避免錯誤使用先包起來
-
-/// <summary>
 /// 速度與記憶體使用量都在可接受範圍 建議使用這個方法
 /// </summary>
 /// <param name="ImgBinary"></param>

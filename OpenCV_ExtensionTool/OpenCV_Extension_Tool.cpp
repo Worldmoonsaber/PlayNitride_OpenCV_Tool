@@ -661,12 +661,6 @@ void RegionPartitionTopologySubLayerAnalysis(int layer,int curIndex, vector<vect
 	}
 }
 
-/// <summary>
-///  實測結果比較慢 (理論上應該要比較快) 待釐清
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <param name="filter"></param>
-/// <returns></returns>
 vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary)
 {
 	vector<BlobInfo> vRes;
@@ -704,25 +698,4 @@ vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary)
 	}
 
 	return vRes;
-}
-
-
-vector<BlobInfo> RegionPartition(Mat ImgBinary, int maxArea, int minArea)
-{
-	vector<BlobInfo> lst = RegionPartitionTopology(ImgBinary);
-	vector<BlobInfo> lstOut;
-
-	for (int i = 0; i < lst.size(); i++)
-	{
-		if (lst[i].Area() > maxArea)
-			continue;
-
-		if (lst[i].Area() < minArea)
-			continue;
-
-		lstOut.push_back(lst[i]);
-	}
-
-
-	return lstOut;
 }
