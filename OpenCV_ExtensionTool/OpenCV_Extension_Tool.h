@@ -134,3 +134,5 @@ private:
 /// <param name="ImgBinary"></param>
 /// <returns></returns>
 vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary);
+
+vector <tuple<Point, float>> MatchPattern(Mat Img, Mat MatchPattern, int div_x, int div_y,float Tolerance_score);

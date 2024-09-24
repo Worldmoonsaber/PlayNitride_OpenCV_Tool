@@ -702,3 +702,169 @@ vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary)
 
 	return vRes;
 }
+
+vector<tuple<Point, float>> MatchPattern(Mat Img, Mat MatchPattern, int div_x, int div_y, float Tolerance_score)
+{
+	int xPatternGrid = div_x;
+	int yPatternGrid = div_y;
+	float tolerance_Score = Tolerance_score;
+
+	if (xPatternGrid == 0)
+		xPatternGrid = 1;
+
+	if (yPatternGrid == 0)
+		yPatternGrid = 1;
+
+	vector<Point> vCropIndx;
+	vector<Mat> vCropMatch;
+	vector<Point> vCropCenter;
+
+	int subWidth = MatchPattern.size().width / xPatternGrid;
+	int subHeight = MatchPattern.size().height / yPatternGrid;
+
+	for (int x = 0; x < xPatternGrid; x++)
+		for (int y = 0; y < yPatternGrid; y++)
+		{
+			Mat croppedIMG;
+			Rect rectPart = Rect(x * subWidth, y * subHeight, subWidth, subHeight);
+
+			vCropIndx.push_back(Point(x, y));
+			vCropCenter.push_back(Point((x + 0.5) * subWidth, (y + 0.5) * subHeight));
+			MatchPattern(rectPart).copyTo(croppedIMG);
+			vCropMatch.push_back(croppedIMG);
+		}
+
+	const int resSz = xPatternGrid * yPatternGrid;
+
+	vector < vector<Point>> result;
+
+	for (int i = 0; i < resSz; i++)
+		result.push_back(vector<Point>());
+
+	for (int i = 0; i < resSz; i++)
+	{
+		Mat imgMatched;
+		matchTemplate(Img, vCropMatch[i], imgMatched, TM_CCOEFF_NORMED);
+
+		Mat dst, grayimg;
+		threshold(imgMatched, dst, tolerance_Score, 1, THRESH_BINARY);
+
+		Mat dstBinary = Mat::zeros(dst.size(), CV_8UC1);
+
+		//-----------------預期會有多點符合條件
+		for (int i = 0; i < dst.cols; ++i)
+			for (int j = 0; j < dst.rows; ++j)
+				if (dst.at<float>(j, i) != 0)
+				{
+					dstBinary.at<uchar>(j, i) = 255;
+				}
+
+		vector<BlobInfo> vRegionTmp = RegionPartitionTopology(dstBinary);
+
+		//-----刪除 Noise 
+		float sum_Area = 0;
+
+		for (int i = 0; i < vRegionTmp.size(); i++)
+			sum_Area += vRegionTmp[i].Area();
+
+		float avg_area = sum_Area / vRegionTmp.size();
+		vector<BlobInfo> vRegion;
+
+		for (int i = 0; i < vRegionTmp.size(); i++)
+			if (vRegionTmp[i].Area() > 0.5 * avg_area)
+				vRegion.push_back(vRegionTmp[i]);
+
+
+		Point offset = Point(vCropMatch[i].size().width / 2 - 1, vCropMatch[i].size().height / 2 - 1);
+		Mat tmpImg = Img.clone();
+
+		for (int j = 0; j < vRegion.size(); j++)
+		{
+			Point pt = Point(vRegion[j].Center()) + offset;
+			result[i].insert(result[i].begin(), pt);
+
+			drawMarker(tmpImg, pt, Scalar(255, 0, 0), 1, 50, 3);
+
+		}
+
+		imgMatched.release();
+		dstBinary.release();
+	}
+
+	vector<tuple<Point, float>> vMatchResult;
+
+	if (result.size() == 1)
+	{
+		//----只有一個Template 無法計算角度
+		for (int i = 0; i < result[0].size(); i++)
+		{
+			vMatchResult.push_back(tuple<Point, float>(result[0][i], 0.0));
+		}
+	}
+	else
+	{
+		vector<vector<Point>> matchedComfirm;
+		//----一一比對
+		for (int i = 0; i < result[0].size(); i++)
+		{
+			vector<Point> vSet;
+			vSet.push_back(result[0][i]);//參考基準點一
+
+			Point ref_Pt = result[0][i];
+
+			for (int s = 1; s < result.size(); s++)
+			{
+				if (result[s].size() == 0)
+					break;
+
+				float x_diff_ref = vCropCenter[s].x - vCropCenter[0].x;
+				float y_diff_ref = vCropCenter[s].y - vCropCenter[0].y;
+
+				Point ptDiff = Point(x_diff_ref, y_diff_ref);
+
+				float ptDiffDist = norm(ptDiff);
+
+				std::sort(result[s].begin(), result[s].end(), [&, ref_Pt, x_diff_ref, y_diff_ref](Point& a, Point& b)
+					{
+						Point pointDist_A = a - ref_Pt;
+						Point pointDist_B = b - ref_Pt;
+
+						if (norm(pointDist_A) < norm(pointDist_B))
+						{
+							return true;
+						}
+						return false;
+					});
+
+				//判斷是否合理
+				Point pointDist = result[s][0] - ref_Pt;
+				float dist = norm(pointDist);
+
+				if (ptDiffDist * 1.1 < dist)
+				{
+					break;
+				}
+
+				//------待加入其他糾錯條件
+				vSet.push_back(result[s][0]);//參考基準點一
+				result[s].erase(result[s].begin());
+			}
+
+			if (vSet.size()== result.size() && vSet.size() > 1)
+			{
+				matchedComfirm.push_back(vSet);
+			}
+		}
+
+		for (int i = 0; i < matchedComfirm.size(); i++)
+		{
+			if (matchedComfirm[i].size() == 0)
+				continue;
+
+			RotatedRect minrect = minAreaRect(matchedComfirm[i]);
+			vMatchResult.push_back(tuple<Point, float>(minrect.center, minrect.angle));
+		}
+	}
+
+	return vMatchResult;
+}
