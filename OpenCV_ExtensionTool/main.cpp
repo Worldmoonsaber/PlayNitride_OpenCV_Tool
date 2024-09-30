@@ -19,64 +19,64 @@ using namespace std;
 int main()
 {
     //Mat imgXXXX = imread("C:\\Git\\ResolutionCaculator\\WinFormResolCalibrator\\WinFormResolCalibrator\\bin\\Debug\\net8.0-windows7.0\\Debug_10-01-59.bmp");
-    Mat ttt;
+    //Mat ttt;
 
-    Mat imgXXXX = imread("C:\\Image\\Uchip\\L5\\20230613\\62001.bmp");
-    Mat rawimg = imread("C:\\Image\\Pair Chip\\20240830 PN177 chips image\\3_I140.bmp");
+    //Mat imgXXXX = imread("C:\\Image\\Uchip\\L5\\20230613\\62001.bmp");
+    //Mat rawimg = imread("C:\\Image\\Pair Chip\\20240830 PN177 chips image\\3_I140.bmp");
 
-    Mat Gimg;
-    Mat ImgThres,ImgThres2;
-    cv::cvtColor(rawimg, Gimg, COLOR_RGB2GRAY);
+    //Mat Gimg;
+    //Mat ImgThres,ImgThres2;
+    //cv::cvtColor(rawimg, Gimg, COLOR_RGB2GRAY);
 
-    adaptiveThreshold(Gimg, ImgThres, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
-    adaptiveThreshold(Gimg, ImgThres2, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
+    //adaptiveThreshold(Gimg, ImgThres, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
+    //adaptiveThreshold(Gimg, ImgThres2, 255, ADAPTIVE_THRESH_GAUSSIAN_C, THRESH_BINARY_INV, 101, 0);//55,1 //ADAPTIVE_THRESH_MEAN_C
 
-    //cv::medianBlur(adptThres, ImgThres, 7);
-    Mat Kcomopen = Mat::ones(Size(10, 10), CV_8UC1);  //Size(10,5)
-    Mat Kcomclose = Mat::ones(Size(5, 5), CV_8UC1);  //Size(10,5)
-    
-    cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
-    cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
+    ////cv::medianBlur(adptThres, ImgThres, 7);
+    //Mat Kcomopen = Mat::ones(Size(10, 10), CV_8UC1);  //Size(10,5)
+    //Mat Kcomclose = Mat::ones(Size(5, 5), CV_8UC1);  //Size(10,5)
+    //
+    //cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
+    //cv::morphologyEx(ImgThres, ImgThres, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
 
-    cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
-    cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
+    //cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_OPEN, Kcomopen, Point(-1, -1), 1);//1 //2
+    //cv::morphologyEx(ImgThres2, ImgThres2, cv::MORPH_CLOSE, Kcomopen, Point(-1, -1), 1);//1 //2
 
-    
-    Mat merge = ImgThres + ImgThres2;
-    Mat Kcomclose2 = Mat::ones(Size(3, 3), CV_8UC1);  //Size(10,5)
-    cv::morphologyEx(merge, merge, cv::MORPH_CLOSE, Kcomclose2, Point(-1, -1), 1);//1 //2
+    //
+    //Mat merge = ImgThres + ImgThres2;
+    //Mat Kcomclose2 = Mat::ones(Size(3, 3), CV_8UC1);  //Size(10,5)
+    //cv::morphologyEx(merge, merge, cv::MORPH_CLOSE, Kcomclose2, Point(-1, -1), 1);//1 //2
 
-    auto TimeStart = std::chrono::high_resolution_clock::now();
-    vector<BlobInfo> lst = RegionPartitionTopology(merge);
-    auto TimeEnd = std::chrono::high_resolution_clock::now();
-
-
-    vector<BlobInfo> lstU;
-
-    for (int u = 0; u < lst.size(); u++)
-    {
-        if(lst[u].Width()>100)
-            lstU.push_back(lst[u]);
-    }
+    //auto TimeStart = std::chrono::high_resolution_clock::now();
+    //vector<BlobInfo> lst = RegionPartitionTopology(merge);
+    //auto TimeEnd = std::chrono::high_resolution_clock::now();
 
 
+    //vector<BlobInfo> lstU;
 
-
-    vector<vector<Point>> vContour;
-    for (int u = 0; u < lstU.size(); u++)
-    {
-        vContour.push_back(lstU[u].contour());
-    }
-
-
-    drawContours(merge, vContour, -1, Scalar(100, 100, 100), -1);
+    //for (int u = 0; u < lst.size(); u++)
+    //{
+    //    if(lst[u].Width()>100)
+    //        lstU.push_back(lst[u]);
+    //}
 
 
 
-    double countingTime = std::chrono::duration<double, std::milli>(TimeEnd - TimeStart).count();
-    std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
-    std::cout << "calculate countingTime time is:: " << countingTime << endl;
-    std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
+
+    //vector<vector<Point>> vContour;
+    //for (int u = 0; u < lstU.size(); u++)
+    //{
+    //    vContour.push_back(lstU[u].contour());
+    //}
+
+
+    //drawContours(merge, vContour, -1, Scalar(100, 100, 100), -1);
+
+
+
+    //double countingTime = std::chrono::duration<double, std::milli>(TimeEnd - TimeStart).count();
+    //std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
+    //std::cout << "calculate countingTime time is:: " << countingTime << endl;
+    //std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
 
 
     //ShowDebugWindow(imgXXXX, lst);
@@ -94,6 +94,38 @@ int main()
     //  0815 拓樸學實現
     //
     // 0909 拓樸學開發出花費時間 在可以接受範圍的實作結果
+
+    //---Match 測試
+        
+    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\Sample2.bmp");
+    Mat imgPattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\Sample2_Chip.bmp");
+
+    int xPatternGrid = 2;
+    int yPatternGrid = 2;
+    float tolerance_Score = 0.5;
+
+
+    vector<tuple<Point, float>> vMatchResult = MatchPattern(img, imgPattern, 0.5);
+
+    for (int j = 0; j < vMatchResult.size(); j++)
+    {
+        Point pt= std::get<0>(vMatchResult[j]);
+        float angle=std::get<1>(vMatchResult[j]);
+
+        RotatedRect rectNew;
+        rectNew.angle = angle;
+        rectNew.center = pt;
+        rectNew.size = imgPattern.size();
+        Point2f vertices2f[4];
+        rectNew.points(vertices2f);
+
+        for (int i = 0; i < 4; i++)
+            line(img, vertices2f[i], vertices2f[(i + 1) % 4], cv::Scalar(0, 255, 0), 1);
+
+        drawMarker(img, rectNew.center, Scalar(255, 0, 0), 15, 50, 1);
+    }
+
+
     system("pause");
 }
 

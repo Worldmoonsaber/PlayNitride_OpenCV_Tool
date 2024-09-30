@@ -135,4 +135,26 @@ private:
 /// <returns></returns>
 vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary);
 
+/// <summary>/// 
+/// </summary>
+/// <param name="Img">目標影像</param>
+/// <param name="MatchPattern">比對 Pattern</param>
+/// <param name="div_x">MatchPattern 在 X方向切割數量 如果MatchPattern WIDTH大於HEIGHT 則建議可以調整為大於1 </param>
+/// <param name="div_y">MatchPattern 在 Y方向切割數量 如果MatchPattern HEIGHT大於WIDTH 則建議可以調整為大於1</param>
+/// <param name="Tolerance_score">容許分數 建議值0.5 </param>
+/// <returns> 輸出 vector<tuple<(位置,旋轉角度)>></returns>
 vector <tuple<Point, float>> MatchPattern(Mat Img, Mat MatchPattern, int div_x, int div_y,float Tolerance_score);
+
+
+
+vector <tuple<Point, float>> MatchPattern(Mat Img, Mat MatchPattern,float Tolerance_score);
+
+
+//class MatchObject
+//{
+//public: 
+//    MatchObject(Mat Pattern);
+//
+//
+//
+//}
