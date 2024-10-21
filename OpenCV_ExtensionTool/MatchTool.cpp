@@ -171,7 +171,7 @@ bool comparePosWithX(const pair<Point2d, char>& lhs, const pair<Point2d, char>& 
 //OCR
 
 //	Match ();
-bool CMatchTool::Match(Mat Img)
+bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 {
 
 	m_matSrc = Img.clone();
@@ -441,6 +441,8 @@ bool CMatchTool::Match(Mat Img)
 		if (i + 1 == m_iMaxPos)
 			break;
 	}
+
+	result = m_vecSingleTargetData;
 
 	return (int)m_vecSingleTargetData.size();
 }

@@ -46,8 +46,10 @@ int main()
     auto t_start = std::chrono::high_resolution_clock::now();
 
 
-    matchTest.LearnPattern(pattern, 100, 0.8, 20, 0, 1024);
-    matchTest.Match(img);
+    vector<s_SingleTargetMatch> result;
+
+    matchTest.LearnPattern(pattern, 500, 0.7, 20, 0, 1024);
+    matchTest.Match(img, result);
 
     auto t_end = std::chrono::high_resolution_clock::now();
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
@@ -56,17 +58,17 @@ int main()
     std::cout << "-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*" << endl;
 
 
-    for (int i = 0; i < matchTest.m_vecSingleTargetData.size(); i++)
+    for (int i = 0; i < result.size(); i++)
     {
-        Point2f pt1[4] = { matchTest.m_vecSingleTargetData[i].ptLT ,
-                            matchTest.m_vecSingleTargetData[i].ptRT,
-                            matchTest.m_vecSingleTargetData[i].ptRB,
-                            matchTest.m_vecSingleTargetData[i].ptLB};
+        Point2f pt1[4] = { result[i].ptLT ,
+                            result[i].ptRT,
+                            result[i].ptRB,
+                            result[i].ptLB};
 
-        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 1);
-        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 1);
-        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 1);
-        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 1);
+        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 5);
+        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 5);
+        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 5);
+        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 5);
     }
 
     system("pause");

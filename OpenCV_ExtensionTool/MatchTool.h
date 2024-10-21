@@ -232,7 +232,8 @@ public:
 	void LearnPattern(Mat imgPattern, int MaxMatchCount,double score,double ToleranceAngle,double MaxOverlap,double MinReduceArea);
 	void LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle, double MaxOverlap);
 	void LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle);
-	bool Match(Mat Img);
+
+	bool Match(Mat Img, vector<s_SingleTargetMatch>& result);
 	vector<s_SingleTargetMatch> m_vecSingleTargetData;
 	void Dispose();
 
@@ -247,11 +248,9 @@ private:
 	int m_iMinReduceArea = 64;
 	bool m_IsHighPrecision = false;
 
-
 	int GetTopLayer (Mat* matTempl, int iMinDstLength);
 	void MatchTemplate (cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD);
 	void GetRotatedROI (Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI);
-
 	Size  GetBestRotationSize (Size sizeSrc, Size sizeDst, double dRAngle);
 	Point2f ptRotatePt2f (Point2f ptInput, Point2f ptOrg, double dAngle);
 	void FilterWithScore (vector<s_MatchParameter>* vec, double dScore);
