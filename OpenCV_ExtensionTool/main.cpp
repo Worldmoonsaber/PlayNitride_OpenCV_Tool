@@ -10,6 +10,7 @@
 #include <numeric>
 #include "OpenCV_Extension_Tool.h"
 #include "OpenCV_DEBUG_Tool.h"
+#include "MatchToolDlg.h"
 
 using namespace cv;
 using namespace std;
@@ -96,34 +97,62 @@ int main()
     // 0909 拓樸學開發出花費時間 在可以接受範圍的實作結果
 
     //---Match 測試
-        
-    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\Sample2.bmp");
-    Mat imgPattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\Sample2_Chip.bmp");
 
-    int xPatternGrid = 2;
-    int yPatternGrid = 2;
-    float tolerance_Score = 0.5;
+    CMatchToolDlg matchTest = CMatchToolDlg();
+
+    matchTest.m_matSrc= imread("C:\\Git\\OpenCV_Tool\\TEST\\Match_Test_Sample5.bmp");
+    matchTest.m_matDst = imread("C:\\Git\\OpenCV_Tool\\TEST\\790301_chip.bmp");
+    matchTest.m_dScore = 0.5;
+    matchTest.m_dToleranceAngle = 0;// 20;
+    matchTest.m_dMaxOverlap = 0;
+    matchTest.m_iMinReduceArea = 256;
+    matchTest.LearnPattern();
+    matchTest.Match();
+    //Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\790301.bmp");
+    //Mat imgPattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\790301_chip.bmp");
+
+    //s_TemplData m_TemplData;
+    //LearnPattern(imgPattern, m_TemplData);
+
+    //match_Param pm;
+
+    //pm.AngleTolerance = 40;
+    //pm.MaxiumResults = 999;
+    //pm.Score = 0.5;
 
 
-    vector<tuple<Point, float>> vMatchResult = MatchPattern(img, imgPattern, 0.5);
+    //vector<s_SingleTargetMatch> resultPt;
+    //Match(img, imgPattern, pm, m_TemplData, resultPt);
 
-    for (int j = 0; j < vMatchResult.size(); j++)
+    Mat img=imread("C:\\Git\\OpenCV_Tool\\TEST\\Match_Test_Sample5.bmp");
+    Mat pattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\790301_chip.bmp");
+
+
+    for (int i = 0; i < matchTest.m_vecSingleTargetData.size(); i++)
     {
-        Point pt= std::get<0>(vMatchResult[j]);
-        float angle=std::get<1>(vMatchResult[j]);
+        Point2f pt1[4] = { matchTest.m_vecSingleTargetData[i].ptLT ,
+                            matchTest.m_vecSingleTargetData[i].ptRT,
+                            matchTest.m_vecSingleTargetData[i].ptRB,
+                            matchTest.m_vecSingleTargetData[i].ptLB};
 
-        RotatedRect rectNew;
-        rectNew.angle = angle;
-        rectNew.center = pt;
-        rectNew.size = imgPattern.size();
-        Point2f vertices2f[4];
-        rectNew.points(vertices2f);
 
-        for (int i = 0; i < 4; i++)
-            line(img, vertices2f[i], vertices2f[(i + 1) % 4], cv::Scalar(0, 255, 0), 1);
 
-        drawMarker(img, rectNew.center, Scalar(255, 0, 0), 15, 50, 1);
+
+        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 5);
+        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 5);
+        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 5);
+        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 5);
     }
+
+
+
+
+    //Mat trans2 = getPerspectiveTransform(pt1, pt0, DECOMP_LU);
+
+    //Mat result2;
+    //warpPerspective(img, result2, trans2, imgPattern.size()); //將Pattern 映射到對應位置
+
+
 
 
     system("pause");
