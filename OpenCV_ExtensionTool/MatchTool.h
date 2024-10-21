@@ -18,6 +18,8 @@ struct s_TemplData
 	vector<double> vecTemplNorm;
 	vector<double> vecInvArea;
 	vector<bool> vecResultEqual1;
+	vector<double> vecResultScoreMax;
+
 	bool bIsPatternLearned;
 	int iBorderColor;
 	void clear ()
@@ -27,6 +29,8 @@ struct s_TemplData
 		vector<double> ().swap (vecInvArea);
 		vector<Scalar> ().swap (vecTemplMean);
 		vector<bool> ().swap (vecResultEqual1);
+		vector<double>().swap(vecResultScoreMax);
+
 	}
 	void resize (int iSize)
 	{
@@ -34,6 +38,7 @@ struct s_TemplData
 		vecTemplNorm.resize (iSize, 0);
 		vecInvArea.resize (iSize, 1);
 		vecResultEqual1.resize (iSize, false);
+		vecResultScoreMax.resize(iSize, 0);
 	}
 	s_TemplData ()
 	{
@@ -213,34 +218,40 @@ struct s_BlockMax
 	}
 };
 // CMatchToolDlg 對話方塊
-class CMatchToolDlg 
+class CMatchTool 
 {
 // 建構
 public:
-	CMatchToolDlg();	// 標準建構函式
-
-
+	CMatchTool();	// 標準建構函式
 
 // 程式碼實作
 protected:
 
 public:
-	int m_iMaxPos=999;
-	double m_dMaxOverlap=0.0;
-	double m_dScore=0.5;
-	double m_dToleranceAngle=0;
-	int m_iMinReduceArea=64;
-	int m_iMessageCount;
-	void LearnPattern();
-	bool Match();
+	void LearnPattern(Mat imgPattern);
+	void LearnPattern(Mat imgPattern, int MaxMatchCount,double score,double ToleranceAngle,double MaxOverlap,double MinReduceArea);
+	void LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle, double MaxOverlap);
+	void LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle);
+	bool Match(Mat Img);
 	vector<s_SingleTargetMatch> m_vecSingleTargetData;
+	void Dispose();
+
+	void SetMatchConfig(bool IsHighPrecision);
+
 
 private:
+	int m_iMaxPos = 999;
+	double m_dMaxOverlap = 0.0;
+	double m_dScore = 0.5;
+	double m_dToleranceAngle = 0;
+	int m_iMinReduceArea = 64;
+	bool m_IsHighPrecision = false;
+
 
 	int GetTopLayer (Mat* matTempl, int iMinDstLength);
 	void MatchTemplate (cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD);
 	void GetRotatedROI (Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI);
-	void CCOEFF_Denominator (cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer);
+
 	Size  GetBestRotationSize (Size sizeSrc, Size sizeDst, double dRAngle);
 	Point2f ptRotatePt2f (Point2f ptInput, Point2f ptOrg, double dAngle);
 	void FilterWithScore (vector<s_MatchParameter>* vec, double dScore);
@@ -248,60 +259,10 @@ private:
 	Point GetNextMaxLoc (Mat & matResult, Point ptMaxLoc, Size sizeTemplate, double& dMaxValue, double dMaxOverlap);
 	Point GetNextMaxLoc (Mat & matResult, Point ptMaxLoc, Size sizeTemplate, double& dMaxValue, double dMaxOverlap, s_BlockMax& blockMax);
 	void SortPtWithCenter (vector<Point2f>& vecSort);
-	//LRESULT OnShowMSG (WPARAM wMSGPointer, LPARAM lIsShowTime);
-	//CString m_strExecureTime;
-	void LoadSrc ();
-	void LoadDst ();
-	bool m_bShowResult;
-public:
-	cv::Mat m_matSrc;
-	cv::Mat m_matDst;
-	bool m_bDebugMode;
 	s_TemplData m_TemplData;
+	bool SubPixEsimation(vector<s_MatchParameter>* vec, double* dX, double* dY, double* dAngle, double dAngleStep, int iMaxScoreIndex);
 
-	//縮放
-	int m_iScaleTimes;
-	double m_dNewScale;
-	//
-	bool bInitial;
-	int m_iDlgOrgWidth;
-	int m_iDlgOrgHeight;
-	int m_iScreenWidth;
-	int m_iScreenHeight;
-	float m_fMaxScaleX;
-	float m_fMaxScaleY;
-	//CList<CRect, CRect> m_listRect;
-	//CStatic m_staticMaxPos;
-	//CFont m_font;
-	//CButton m_ckOutputROI;
-	bool SubPixEsimation (vector<s_MatchParameter>* vec, double* dX, double* dY, double* dAngle, double dAngleStep, int iMaxScoreIndex);
+	cv::Mat m_matDst;
+	cv::Mat m_matSrc;
 
-	//輸出ROI
-	void OutputRoi (s_SingleTargetMatch ss);
-
-	//CButton m_ckBitwiseNot;
-	//CButton m_bSubPixel;
-
-	bool m_bToleranceRange;
-	double m_dTolerance1;
-	double m_dTolerance2;
-	double m_dTolerance3;
-	double m_dTolerance4;
-	bool m_bStopLayer1;//FastMode
-
-	//void PumpMessages ();
-	//CComboBox m_cbLanSelect;
-
-
-	//CString m_strLanIndex;
-	//CString m_strLanScore;
-	//CString m_strLanAngle;
-	//CString m_strLanPosX;
-	//CString m_strLanPosY;
-	//CString m_strLanExecutionTime;
-	//CString m_strLanSourceImageSize;
-	//CString m_strLanDstImageSize;
-	//CString m_strLanPixelPos;
-	//CButton m_ckSIMD;
-	//CString m_strTotalNum;
 };

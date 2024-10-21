@@ -24,7 +24,7 @@
     <ClCompile Include="OpenCV_DEBUG_Tool.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
-    <ClCompile Include="MatchToolDlg.cpp">
+    <ClCompile Include="MatchTool.cpp">
       <Filter>來源檔案</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,7 @@
     <ClInclude Include="OpenCV_DEBUG_Tool.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
-    <ClInclude Include="MatchToolDlg.h">
+    <ClInclude Include="MatchTool.h">
       <Filter>標頭檔</Filter>
     </ClInclude>
   </ItemGroup>
