@@ -40,18 +40,6 @@ bool compareMatchResultByPos(const s_SingleTargetMatch& lhs, const s_SingleTarge
 bool compareMatchResultByScore(const s_SingleTargetMatch& lhs, const s_SingleTargetMatch& rhs) { return lhs.dMatchScore > rhs.dMatchScore; }
 bool compareMatchResultByPosX(const s_SingleTargetMatch& lhs, const s_SingleTargetMatch& rhs) { return lhs.ptCenter.x < rhs.ptCenter.x; }
 
-const Scalar colorWaterBlue(230, 255, 102);
-const Scalar colorBlue(255, 0, 0);
-const Scalar colorYellow(0, 255, 255);
-const Scalar colorRed(0, 0, 255);
-const Scalar colorBlack(0, 0, 0);
-const Scalar colorGray(200, 200, 200);
-const Scalar colorSystem(240, 240, 240);
-const Scalar colorGreen(0, 255, 0);
-const Scalar colorWhite(255, 255, 255);
-const Scalar colorPurple(214, 112, 218);
-const Scalar colorGoldenrod(15, 185, 255);
-
 CMatchTool::CMatchTool()
 {
 }
@@ -97,7 +85,7 @@ void CMatchTool::LearnPattern(Mat imgPattern)
 		templData->vecTemplNorm[i] = templNorm;
 
 		Mat matImg;
-		matchTemplate(templData->vecPyramid[i], templData->vecPyramid[i], matImg, CV_TM_CCORR);
+		matchTemplate(templData->vecPyramid[i], templData->vecPyramid[i], matImg, CV_TM_CCOEFF);
 		double maxv;
 		minMaxLoc(matImg, 0, &maxv, 0, 0);
 		templData->vecResultScoreMax[i] = maxv;
@@ -107,13 +95,13 @@ void CMatchTool::LearnPattern(Mat imgPattern)
 	templData->bIsPatternLearned = true;
 }
 
-void CMatchTool::LearnPattern(Mat imgPattern,int MaxMatchCount, double score, double ToleranceAngle, double MaxOverlap, double MinReduceArea)
+void CMatchTool::LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle, double MaxOverlap, double MinReduceArea)
 {
 	m_iMaxPos = MaxMatchCount;
 
 	if (score > 0.99)
 		m_dScore = 0.98;
-	else if(m_dScore<0)
+	else if (m_dScore < 0)
 		m_dScore = 0.1;
 	else
 		m_dScore = score;
@@ -123,12 +111,14 @@ void CMatchTool::LearnPattern(Mat imgPattern,int MaxMatchCount, double score, do
 	else
 		m_dToleranceAngle = 180;
 
-	if(MaxOverlap<0)
+	if (MaxOverlap < 0)
 		m_dMaxOverlap = 0;
+	else if (MaxOverlap > 0.5)
+		m_dMaxOverlap = 0.5;
 	else
 		m_dMaxOverlap = MaxOverlap;
 
-	if(MinReduceArea<16)
+	if (MinReduceArea < 16)
 		m_iMinReduceArea = 16;
 	else
 		m_iMinReduceArea = MinReduceArea;
@@ -147,13 +137,16 @@ void CMatchTool::LearnPattern(Mat imgPattern, int MaxMatchCount, double score, d
 	LearnPattern(imgPattern, MaxMatchCount, score, ToleranceAngle, m_dToleranceAngle, m_iMinReduceArea);
 }
 
-void CMatchTool::SetMatchConfig(bool IsHighPrecision)
+void CMatchTool::SetMatchConfig(bool IsHighPrecision, bool IsSubPixelMatch)
 {
 	m_IsHighPrecision = IsHighPrecision;
+	m_IsSubPixelMatch = IsSubPixelMatch;
 }
 
 int CMatchTool::GetTopLayer(Mat* matTempl, int iMinDstLength)
 {
+
+	float f_RefScore = m_dScore;
 	int iTopLayer = 0;
 	int iMinReduceArea = iMinDstLength * iMinDstLength;
 	int iArea = matTempl->cols * matTempl->rows;
@@ -170,15 +163,118 @@ bool comparePosWithY(const pair<Point2d, char>& lhs, const pair<Point2d, char>& 
 bool comparePosWithX(const pair<Point2d, char>& lhs, const pair<Point2d, char>& rhs) { return lhs.first.x < rhs.first.x; }
 //OCR
 
-//	Match ();
-bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
+void CMatchTool::AddObjToMatchMap(map<cv::Point, vector<s_MatchParameter>>& mapVec, s_MatchParameter newObj, Size patternSz)
+{
+	bool isExist = false;
+
+	//map<Point, vector<s_MatchParameter>>::iterator iter = mapVec.find(newObj.pt);
+
+	//if (iter != mapVec.end())
+	//{
+	//	isExist = true;
+
+	//	//for (int i = 0; i < mapVec[newObj.pt].size(); i++)
+	//	//{
+	//	//	if (mapVec[newObj.pt][i].dMatchScore < newObj.dMatchScore)
+	//	//	{
+	//	//		mapVec[newObj.pt].push_back(newObj);
+	//	//		break;
+	//	//	}
+	//	//}
+
+	//}
+	//else
+	//{
+
+		//for (map<cv::Point, vector<s_MatchParameter>>::iterator it = mapVec.begin(); it != mapVec.end(); it++)
+		//{
+		//	cv::Point pt = (*it).first;
+
+		//	if (abs(pt.x - newObj.pt.x) < patternSz.width / 2
+		//		&& abs(pt.y - newObj.pt.y) < patternSz.height / 2)
+		//	{
+		//		isExist = true;
+		//		//----確認是否有比它分數更高
+
+		//		for (int i = 0; i < mapVec[pt].size(); i++)
+		//		{
+		//			if (mapVec[pt][i].dMatchScore < newObj.dMatchScore)
+		//			{
+		//				mapVec[pt].push_back(newObj);
+		//				break;
+		//			}
+		//		}
+
+		//	}
+		//}
+	//}
+
+	//if (!isExist)
+	//{
+	//	vector<s_MatchParameter> newVec;
+	//	mapVec.insert(pair<Point, vector<s_MatchParameter>>(newObj.pt, newVec));
+	//	//mapVec[newObj.pt].push_back(newObj);
+	//}
+
+}
+
+void CMatchTool::AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_MatchParameter newObj, Size patternSz)
+{
+	if (VecMatch.size() == 0)
+	{
+		vector<s_MatchParameter> vMatch;
+		vMatch.push_back(newObj);
+		VecMatch.push_back(vMatch);
+	}
+	else
+	{
+		bool isExist = false;
+
+		for (int i = 0; i < VecMatch.size(); i++)
+		{
+			cv::Point pt = VecMatch[i][0].pt;
+
+			if (abs(pt.x - newObj.pt.x) < 2
+				&& abs(pt.y - newObj.pt.y) < 2)
+			{
+				isExist = true;
+				//----確認是否有比它分數更高
+
+				for (int j = 0; j < VecMatch[i].size(); j++)
+				{
+					if (VecMatch[i][j].dMatchScore < newObj.dMatchScore)
+					{
+						VecMatch[i].push_back(newObj);
+						break;
+					}
+				}
+
+			}
+
+
+			if (isExist)
+				break;
+		}
+
+		if (!isExist)
+		{
+			vector<s_MatchParameter> vMatch;
+			vMatch.push_back(newObj);
+			VecMatch.push_back(vMatch);
+		}
+	}
+
+}
+
+
+bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 {
 
 	m_matSrc = Img.clone();
 
 	if (!m_TemplData.bIsPatternLearned)
 		return false;
-	
+
 	//決定金字塔層數 總共為1 + iLayer層
 	int iTopLayer = GetTopLayer(&m_matDst, (int)sqrt((double)m_iMinReduceArea));
 
@@ -226,6 +322,12 @@ bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 	//bool bCalMaxByBlock = (vecMatSrcPyr[iTopLayer].size().area() / sizePat.area() > 500) && m_iMaxPos > 10;
 
 	//-----此處花費時間極少 優化效果不明顯
+	auto t_start = std::chrono::high_resolution_clock::now();
+
+	//map<Point, vector<s_MatchParameter>> mapVecMatchParameter;
+
+	vector<vector<s_MatchParameter>>  vecVecMatchParameter;
+
 
 	for (int i = 0; i < iSize; i++)
 	{
@@ -245,43 +347,91 @@ bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 
 		MatchTemplate(matRotatedSrc, pTemplData, matResult, iTopLayer, false);
 
-		s_BlockMax blockMax(matResult, pTemplData->vecPyramid[iTopLayer].size());
-		blockMax.GetMaxValueLoc(dMaxVal, ptMaxLoc);
-
+		minMaxLoc(matResult, 0, &dMaxVal, 0, &ptMaxLoc);
 		if (dMaxVal < vecLayerScore[iTopLayer])
 			continue;
 
-		vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]));
+		Size matchSz = pTemplData->vecPyramid[iTopLayer].size();
 
-		//----這邊適合丟到執行緒中去做
+		s_MatchParameter obj = s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]);
+
+		AddObjToMatchVec(vecVecMatchParameter, obj, matchSz);
+		//AddObjToMatchMap(mapVecMatchParameter, obj, matchSz);
+
+		vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]));
 
 		for (int j = 0; j < m_iMaxPos + MATCH_CANDIDATE_NUM - 1; j++)
 		{
-			ptMaxLoc = GetNextMaxLoc(matResult, ptMaxLoc, pTemplData->vecPyramid[iTopLayer].size(), dValue, m_dMaxOverlap, blockMax);
+			ptMaxLoc = GetNextMaxLoc(matResult, ptMaxLoc, pTemplData->vecPyramid[iTopLayer].size(), dValue, m_dMaxOverlap);
 			if (dValue < vecLayerScore[iTopLayer])
 				break;
 			vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]));
+
+			s_MatchParameter obj2 = s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]);
+			//AddObjToMatchMap(mapVecMatchParameter, obj2, matchSz);
+			AddObjToMatchVec(vecVecMatchParameter, obj2, matchSz);
+
 		}
+
+		//s_BlockMax blockMax(matResult, pTemplData->vecPyramid[iTopLayer].size());
+		//blockMax.GetMaxValueLoc(dMaxVal, ptMaxLoc);
+
+		//if (dMaxVal < vecLayerScore[iTopLayer])
+		//	continue;
+
+		//vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]));
+
+		////----這邊適合丟到執行緒中去做
+
+		//for (int j = 0; j < m_iMaxPos + MATCH_CANDIDATE_NUM - 1; j++)
+		//{
+		//	ptMaxLoc = GetNextMaxLoc(matResult, ptMaxLoc, pTemplData->vecPyramid[iTopLayer].size(), dValue, m_dMaxOverlap, blockMax);
+		//	if (dValue < vecLayerScore[iTopLayer])
+		//		break;
+		//	vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]));
+		//}
 
 
 	}
 
 	sort(vecMatchParameter.begin(), vecMatchParameter.end(), compareScoreBig2Small);
 
+	
+	vector<s_MatchParameter> vecMatchParameterValid;
+
+	for (int i = 0; i < vecVecMatchParameter.size(); i++)
+	{
+		sort(vecVecMatchParameter[i].begin(), vecVecMatchParameter[i].end(), compareScoreBig2Small);
+
+		vecMatchParameterValid.push_back(vecVecMatchParameter[i][0]);
+	}
+
+	vecMatchParameter.clear();
+	vecMatchParameter = vecMatchParameterValid;
+	
+
+
+	auto t_end = std::chrono::high_resolution_clock::now();
+	double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+	std::cout << "1st match time is:: " << elapsed_time_ms << endl;
+
+
 	int iMatchSize = (int)vecMatchParameter.size();
 	int iDstW = pTemplData->vecPyramid[iTopLayer].cols, iDstH = pTemplData->vecPyramid[iTopLayer].rows;
 
 	//第一階段結束
-	bool bSubPixelEstimation = true;//有沒有開SubPixel 時間幾乎沒有差
-	
+	bool bSubPixelEstimation = m_IsSubPixelMatch;//有沒有開SubPixel 時間幾乎沒有差
+
 	int iStopLayer = 1;// m_bStopLayer1 ? 1 : 0; //设置为1时：粗匹配，牺牲精度提升速度。
 
-	if(m_IsHighPrecision)
+	if (m_IsHighPrecision)
 		iStopLayer = 0;
 	else
 		iStopLayer = 1;
 
 	// 粗匹配與高精度 時間大約相差4倍
+
+	t_start = std::chrono::high_resolution_clock::now();
 
 
 	//int iSearchSize = min (m_iMaxPos + MATCH_CANDIDATE_NUM, (int)vecMatchParameter.size ());//可能不需要搜尋到全部 太浪費時間
@@ -390,7 +540,21 @@ bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 		}
 	}
 
+	t_end = std::chrono::high_resolution_clock::now();
+	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+	std::cout << "2nd match time is:: " << elapsed_time_ms << endl;
+
+
+	t_start = std::chrono::high_resolution_clock::now();
+
 	FilterWithScore(&vecAllResult, m_dScore);
+
+	t_end = std::chrono::high_resolution_clock::now();
+	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+	std::cout << "FilterWithScore time is:: " << elapsed_time_ms << endl;
+
+	t_start = std::chrono::high_resolution_clock::now();
+
 
 	//最後濾掉重疊
 	iDstW = pTemplData->vecPyramid[iStopLayer].cols * (iStopLayer == 0 ? 1 : 2);
@@ -409,6 +573,15 @@ bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 	}
 	FilterWithRotatedRect(&vecAllResult, CV_TM_CCOEFF_NORMED, m_dMaxOverlap);
 	//最後濾掉重疊
+
+	FilterWithScore(&vecAllResult, m_dScore);
+
+	t_end = std::chrono::high_resolution_clock::now();
+	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+	std::cout << "濾掉重疊 time is:: " << elapsed_time_ms << endl;
+
+	t_start = std::chrono::high_resolution_clock::now();
+
 
 	//根據分數排序
 	sort(vecAllResult.begin(), vecAllResult.end(), compareScoreBig2Small);
@@ -443,6 +616,11 @@ bool CMatchTool::Match(Mat Img , vector<s_SingleTargetMatch>& result)
 	}
 
 	result = m_vecSingleTargetData;
+
+	t_end = std::chrono::high_resolution_clock::now();
+	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+	std::cout << "Get Result is:: " << elapsed_time_ms << endl;
+
 
 	return (int)m_vecSingleTargetData.size();
 }
@@ -572,11 +750,121 @@ inline int IM_Conv_SIMD(unsigned char* pCharKernel, unsigned char* pCharConv, in
 }
 //#define ORG
 
+void CMatchTool::CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer)
+{
+	if (pTemplData->vecResultEqual1[iLayer] == true)
+	{
+		matResult = Scalar::all(1);
+		return;
+	}
+
+	double maxv;
+	minMaxLoc(matSrc, 0, &maxv, 0, 0);
+
+	if (maxv < pTemplData->vecResultScoreMax[iLayer])
+		maxv = pTemplData->vecResultScoreMax[iLayer];
+
+
+	////auto t_start = std::chrono::high_resolution_clock::now();
+
+	matResult /= maxv;
+
+
+	//auto t_end = std::chrono::high_resolution_clock::now();
+	//double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+
+	//std::cout << "matResult div maxv  time is:: " << elapsed_time_ms << endl;
+
+
+
+	//double* q0 = 0, * q1 = 0, * q2 = 0, * q3 = 0;
+
+	//Mat sum, sqsum;
+	//integral(matSrc, sum, sqsum, CV_64F);
+
+	//q0 = (double*)sqsum.data;
+	//q1 = q0 + pTemplData->vecPyramid[iLayer].cols;
+	//q2 = (double*)(sqsum.data + pTemplData->vecPyramid[iLayer].rows * sqsum.step);
+	//q3 = q2 + pTemplData->vecPyramid[iLayer].cols;
+
+	//double* p0 = (double*)sum.data;
+	//double* p1 = p0 + pTemplData->vecPyramid[iLayer].cols;
+	//double* p2 = (double*)(sum.data + pTemplData->vecPyramid[iLayer].rows * sum.step);
+	//double* p3 = p2 + pTemplData->vecPyramid[iLayer].cols;
+
+	//int sumstep = sum.data ? (int)(sum.step / sizeof(double)) : 0;
+	//int sqstep = sqsum.data ? (int)(sqsum.step / sizeof(double)) : 0;
+
+	////
+	//double dTemplMean0 = pTemplData->vecTemplMean[iLayer][0];
+	//double dTemplNorm = pTemplData->vecTemplNorm[iLayer];
+	//double dInvArea = pTemplData->vecInvArea[iLayer];
+	////
+
+	//int i, j;
+	//for (i = 0; i < matResult.rows; i++)
+	//{
+	//	float* rrow = matResult.ptr<float>(i);
+	//	int idx = i * sumstep;
+	//	int idx2 = i * sqstep;
+
+	//	for (j = 0; j < matResult.cols; j += 1, idx += 1, idx2 += 1)
+	//	{
+	//		if (j==1 && i==15)
+	//		{
+	//			int c = 0;
+	//			c++;
+	//		}
+
+
+	//		double num = rrow[j], t;
+	//		double wndMean2 = 0, wndSum2 = 0;
+
+	//		t = p0[idx] - p1[idx] - p2[idx] + p3[idx];
+	//		wndMean2 += t * t;
+	//		num -= t * dTemplMean0;
+	//		wndMean2 *= dInvArea;
+
+
+	//		t = q0[idx2] - q1[idx2] - q2[idx2] + q3[idx2];
+	//		wndSum2 += t;
+
+
+	//		//t = std::sqrt (MAX (wndSum2 - wndMean2, 0)) * dTemplNorm;
+
+	//		double diff2 = MAX(wndSum2 - wndMean2, 0);
+	//		if (diff2 <= std::min(0.5, 10 * FLT_EPSILON * wndSum2))
+	//			t = 0; // avoid rounding errors
+	//		else
+	//			t = std::sqrt(diff2) * dTemplNorm;
+
+	//		if (fabs(num) < t)
+	//			num /= t;
+	//		else if (fabs(num) < t * 1.125)
+	//			num = num > 0 ? 1 : -1;
+	//		else
+	//			num = 0;
+
+	//		rrow[j] = (float)num;
+	//	}
+	//}
+}
+
+
+
 void CMatchTool::MatchTemplate(cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD)
 {
-	matchTemplate(matSrc, pTemplData->vecPyramid[iLayer], matResult, CV_TM_CCORR);
+	matchTemplate(matSrc, pTemplData->vecPyramid[iLayer], matResult, CV_TM_CCOEFF);
 
-	matResult = matResult / pTemplData->vecResultScoreMax[iLayer];
+	CCOEFF_Denominator(matSrc, pTemplData, matResult, iLayer);
+
+	//if (pTemplData->vecResultEqual1[iLayer])
+	//{
+	//	matResult = Scalar::all(1);
+	//	return;
+	//}
+
+	//matResult = matResult / pTemplData->vecResultScoreMax[iLayer];
 }
 void CMatchTool::GetRotatedROI(Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI)
 {

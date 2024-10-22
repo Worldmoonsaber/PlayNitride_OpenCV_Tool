@@ -40,17 +40,18 @@ int main()
     CMatchTool matchTest = CMatchTool();
 
 
-    Mat pattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\790301_chip.bmp");
-    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\Match_Test_Sample5.bmp");
+    Mat pattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\KeySample.bmp");
+    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\20240920_105037.bmp");
 
-    auto t_start = std::chrono::high_resolution_clock::now();
 
 
     vector<s_SingleTargetMatch> result;
 
-    matchTest.LearnPattern(pattern, 500, 0.7, 20, 0, 1024);
-    matchTest.Match(img, result);
+    matchTest.LearnPattern(pattern, 1, 0.6, 20, 0, 256);
+    matchTest.SetMatchConfig(false, false);
+    auto t_start = std::chrono::high_resolution_clock::now();
 
+    matchTest.Match(img, result);
     auto t_end = std::chrono::high_resolution_clock::now();
     double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
 
@@ -65,13 +66,22 @@ int main()
                             result[i].ptRB,
                             result[i].ptLB};
 
-        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 5);
-        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 5);
-        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 5);
-        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 5);
+        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 2);
+        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 2);
+        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 2);
+        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 2);
     }
 
     system("pause");
 }
 
 
+
+
+
+//auto t_start = std::chrono::high_resolution_clock::now();
+//
+//auto t_end = std::chrono::high_resolution_clock::now();
+//double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
+//
+//std::cout << "match time is:: " << elapsed_time_ms << endl;
