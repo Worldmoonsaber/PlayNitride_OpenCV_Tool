@@ -19,37 +19,21 @@ using namespace std;
 
 int main()
 {
-    //ShowDebugWindow(imgXXXX, lst);
-    ////已測試 切割 210個 Region
-    ////純粹用洪水法分區 26ms
-    // 使用 RegionFloodFill  3ms 效率提升 8倍
-    // 存取指標方式 14ms 反而比較慢 後續不採用
-    // 只要有創建新影像 有進行影像操作 速度就快不起來
-
-
-    // 0808 測試
-    // RegionPartition(Mat ImgBinary, int maxArea, int minArea) 改成全指標方式存取 急速可以撐到 9.5ms 速度會在9.5~14之間飄移
-    // 影響速度變化的原因待查
-
-    //  0815 拓樸學實現
-    //
-    // 0909 拓樸學開發出花費時間 在可以接受範圍的實作結果
-
-    //---Match 測試
 
     CMatchTool matchTest = CMatchTool();
 
 
     Mat pattern = imread("C:\\Git\\OpenCV_Tool\\TEST\\KeySample.bmp");
-    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\20240920_105037.bmp");
+    Mat img = imread("C:\\Git\\OpenCV_Tool\\TEST\\20240919_121620.bmp");
 
+
+    auto t_start = std::chrono::high_resolution_clock::now();
 
 
     vector<s_SingleTargetMatch> result;
 
-    matchTest.LearnPattern(pattern, 1, 0.6, 20, 0, 256);
+    matchTest.LearnPattern(pattern, 1, 0.4, 20, 0, 256);
     matchTest.SetMatchConfig(false, false);
-    auto t_start = std::chrono::high_resolution_clock::now();
 
     matchTest.Match(img, result);
     auto t_end = std::chrono::high_resolution_clock::now();
@@ -66,22 +50,15 @@ int main()
                             result[i].ptRB,
                             result[i].ptLB};
 
-        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 2);
-        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 2);
-        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 2);
-        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 2);
+        line(img, pt1[0] , pt1[1] , Scalar(20, 20, 255), 2,1);
+        line(img, pt1[1] , pt1[2] , Scalar(20, 20, 255), 2, 1);
+        line(img, pt1[2] , pt1[3] , Scalar(20, 20, 255), 2, 1);
+        line(img, pt1[3] , pt1[0] , Scalar(20, 20, 255), 2, 1);
+
+        Point2f pt1Mark = result[i].ptLT * 0.8 + 0.2 * result[i].ptRT;
+        Point2f pt2Mark = result[i].ptLT * 0.8 + 0.2 * result[i].ptLB;
+        line(img, pt1Mark, pt2Mark, Scalar(100, 255, 100), 2, 20);
     }
 
     system("pause");
 }
-
-
-
-
-
-//auto t_start = std::chrono::high_resolution_clock::now();
-//
-//auto t_end = std::chrono::high_resolution_clock::now();
-//double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-//
-//std::cout << "match time is:: " << elapsed_time_ms << endl;

@@ -60,7 +60,6 @@ void CMatchTool::LearnPattern(Mat imgPattern)
 	{
 		Mat img = templData->vecPyramid[i];
 
-
 		double invArea = 1. / ((double)templData->vecPyramid[i].rows * templData->vecPyramid[i].cols);
 		Scalar templMean, templSdv;
 		double templNorm = 0, templSum2 = 0;
@@ -163,62 +162,7 @@ bool comparePosWithY(const pair<Point2d, char>& lhs, const pair<Point2d, char>& 
 bool comparePosWithX(const pair<Point2d, char>& lhs, const pair<Point2d, char>& rhs) { return lhs.first.x < rhs.first.x; }
 //OCR
 
-void CMatchTool::AddObjToMatchMap(map<cv::Point, vector<s_MatchParameter>>& mapVec, s_MatchParameter newObj, Size patternSz)
-{
-	bool isExist = false;
-
-	//map<Point, vector<s_MatchParameter>>::iterator iter = mapVec.find(newObj.pt);
-
-	//if (iter != mapVec.end())
-	//{
-	//	isExist = true;
-
-	//	//for (int i = 0; i < mapVec[newObj.pt].size(); i++)
-	//	//{
-	//	//	if (mapVec[newObj.pt][i].dMatchScore < newObj.dMatchScore)
-	//	//	{
-	//	//		mapVec[newObj.pt].push_back(newObj);
-	//	//		break;
-	//	//	}
-	//	//}
-
-	//}
-	//else
-	//{
-
-		//for (map<cv::Point, vector<s_MatchParameter>>::iterator it = mapVec.begin(); it != mapVec.end(); it++)
-		//{
-		//	cv::Point pt = (*it).first;
-
-		//	if (abs(pt.x - newObj.pt.x) < patternSz.width / 2
-		//		&& abs(pt.y - newObj.pt.y) < patternSz.height / 2)
-		//	{
-		//		isExist = true;
-		//		//----確認是否有比它分數更高
-
-		//		for (int i = 0; i < mapVec[pt].size(); i++)
-		//		{
-		//			if (mapVec[pt][i].dMatchScore < newObj.dMatchScore)
-		//			{
-		//				mapVec[pt].push_back(newObj);
-		//				break;
-		//			}
-		//		}
-
-		//	}
-		//}
-	//}
-
-	//if (!isExist)
-	//{
-	//	vector<s_MatchParameter> newVec;
-	//	mapVec.insert(pair<Point, vector<s_MatchParameter>>(newObj.pt, newVec));
-	//	//mapVec[newObj.pt].push_back(newObj);
-	//}
-
-}
-
-void CMatchTool::AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_MatchParameter newObj, Size patternSz)
+void CMatchTool::AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_MatchParameter newObj)
 {
 	if (VecMatch.size() == 0)
 	{
@@ -298,7 +242,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		if (m_dToleranceAngle > 180)
 			m_dToleranceAngle = 180;// 大於180沒有意義
 
-
 		for (double dAngle = 0; dAngle < m_dToleranceAngle + dAngleStep; dAngle += dAngleStep)
 			vecAngles.push_back(dAngle);
 		for (double dAngle = -dAngleStep; dAngle > -m_dToleranceAngle - dAngleStep; dAngle -= dAngleStep)
@@ -310,8 +253,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 
 	int iSize = (int)vecAngles.size();
 
-	//vector<s_MatchParameter> vecMatchParameter (iSize * (m_iMaxPos + MATCH_CANDIDATE_NUM));
-	vector<s_MatchParameter> vecMatchParameter;
 	vector<double> vecLayerScore(iTopLayer + 1, m_dScore);
 
 	//------影像縮越小 容許分數必須越低以免 細節喪失後 無法比對出結果
@@ -319,13 +260,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		vecLayerScore[iLayer] = vecLayerScore[iLayer - 1] * 0.9;
 
 	Size sizePat = pTemplData->vecPyramid[iTopLayer].size();
-	//bool bCalMaxByBlock = (vecMatSrcPyr[iTopLayer].size().area() / sizePat.area() > 500) && m_iMaxPos > 10;
-
-	//-----此處花費時間極少 優化效果不明顯
-	auto t_start = std::chrono::high_resolution_clock::now();
-
-	//map<Point, vector<s_MatchParameter>> mapVecMatchParameter;
-
 	vector<vector<s_MatchParameter>>  vecVecMatchParameter;
 
 
@@ -336,7 +270,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		Point ptMaxLoc;
 		double dValue, dMaxVal;
 		double dRotate = clock();
-		//Size sizeBest = GetBestRotationSize (vecMatSrcPyr[iTopLayer].size (), pTemplData->vecPyramid[iTopLayer].size (), vecAngles[i]);
 		Size sizeBest = vecMatSrcPyr[iTopLayer].size();
 
 		float fTranslationX = (sizeBest.width - 1) / 2.0f - ptCenter.x;
@@ -354,68 +287,31 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		Size matchSz = pTemplData->vecPyramid[iTopLayer].size();
 
 		s_MatchParameter obj = s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]);
-
-		AddObjToMatchVec(vecVecMatchParameter, obj, matchSz);
-		//AddObjToMatchMap(mapVecMatchParameter, obj, matchSz);
-
-		vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]));
+		AddObjToMatchVec(vecVecMatchParameter, obj);
 
 		for (int j = 0; j < m_iMaxPos + MATCH_CANDIDATE_NUM - 1; j++)
 		{
 			ptMaxLoc = GetNextMaxLoc(matResult, ptMaxLoc, pTemplData->vecPyramid[iTopLayer].size(), dValue, m_dMaxOverlap);
 			if (dValue < vecLayerScore[iTopLayer])
 				break;
-			vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]));
 
 			s_MatchParameter obj2 = s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]);
-			//AddObjToMatchMap(mapVecMatchParameter, obj2, matchSz);
-			AddObjToMatchVec(vecVecMatchParameter, obj2, matchSz);
+			AddObjToMatchVec(vecVecMatchParameter, obj2);
 
 		}
 
-		//s_BlockMax blockMax(matResult, pTemplData->vecPyramid[iTopLayer].size());
-		//blockMax.GetMaxValueLoc(dMaxVal, ptMaxLoc);
-
-		//if (dMaxVal < vecLayerScore[iTopLayer])
-		//	continue;
-
-		//vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dMaxVal, vecAngles[i]));
-
-		////----這邊適合丟到執行緒中去做
-
-		//for (int j = 0; j < m_iMaxPos + MATCH_CANDIDATE_NUM - 1; j++)
-		//{
-		//	ptMaxLoc = GetNextMaxLoc(matResult, ptMaxLoc, pTemplData->vecPyramid[iTopLayer].size(), dValue, m_dMaxOverlap, blockMax);
-		//	if (dValue < vecLayerScore[iTopLayer])
-		//		break;
-		//	vecMatchParameter.push_back(s_MatchParameter(Point2f(ptMaxLoc.x - fTranslationX, ptMaxLoc.y - fTranslationY), dValue, vecAngles[i]));
-		//}
-
-
 	}
 
-	sort(vecMatchParameter.begin(), vecMatchParameter.end(), compareScoreBig2Small);
-
-	
 	vector<s_MatchParameter> vecMatchParameterValid;
 
 	for (int i = 0; i < vecVecMatchParameter.size(); i++)
 	{
 		sort(vecVecMatchParameter[i].begin(), vecVecMatchParameter[i].end(), compareScoreBig2Small);
-
 		vecMatchParameterValid.push_back(vecVecMatchParameter[i][0]);
 	}
 
-	vecMatchParameter.clear();
-	vecMatchParameter = vecMatchParameterValid;
+	vector<s_MatchParameter> vecMatchParameter = vecMatchParameterValid;
 	
-
-
-	auto t_end = std::chrono::high_resolution_clock::now();
-	double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-	std::cout << "1st match time is:: " << elapsed_time_ms << endl;
-
-
 	int iMatchSize = (int)vecMatchParameter.size();
 	int iDstW = pTemplData->vecPyramid[iTopLayer].cols, iDstH = pTemplData->vecPyramid[iTopLayer].rows;
 
@@ -430,11 +326,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		iStopLayer = 1;
 
 	// 粗匹配與高精度 時間大約相差4倍
-
-	t_start = std::chrono::high_resolution_clock::now();
-
-
-	//int iSearchSize = min (m_iMaxPos + MATCH_CANDIDATE_NUM, (int)vecMatchParameter.size ());//可能不需要搜尋到全部 太浪費時間
 	vector<s_MatchParameter> vecAllResult;
 	for (int i = 0; i < (int)vecMatchParameter.size(); i++)
 	{
@@ -540,20 +431,8 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 		}
 	}
 
-	t_end = std::chrono::high_resolution_clock::now();
-	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-	std::cout << "2nd match time is:: " << elapsed_time_ms << endl;
-
-
-	t_start = std::chrono::high_resolution_clock::now();
 
 	FilterWithScore(&vecAllResult, m_dScore);
-
-	t_end = std::chrono::high_resolution_clock::now();
-	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-	std::cout << "FilterWithScore time is:: " << elapsed_time_ms << endl;
-
-	t_start = std::chrono::high_resolution_clock::now();
 
 
 	//最後濾掉重疊
@@ -575,13 +454,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 	//最後濾掉重疊
 
 	FilterWithScore(&vecAllResult, m_dScore);
-
-	t_end = std::chrono::high_resolution_clock::now();
-	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-	std::cout << "濾掉重疊 time is:: " << elapsed_time_ms << endl;
-
-	t_start = std::chrono::high_resolution_clock::now();
-
 
 	//根據分數排序
 	sort(vecAllResult.begin(), vecAllResult.end(), compareScoreBig2Small);
@@ -616,11 +488,6 @@ bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 	}
 
 	result = m_vecSingleTargetData;
-
-	t_end = std::chrono::high_resolution_clock::now();
-	elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-	std::cout << "Get Result is:: " << elapsed_time_ms << endl;
-
 
 	return (int)m_vecSingleTargetData.size();
 }
@@ -764,90 +631,8 @@ void CMatchTool::CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv
 	if (maxv < pTemplData->vecResultScoreMax[iLayer])
 		maxv = pTemplData->vecResultScoreMax[iLayer];
 
-
-	////auto t_start = std::chrono::high_resolution_clock::now();
-
 	matResult /= maxv;
 
-
-	//auto t_end = std::chrono::high_resolution_clock::now();
-	//double elapsed_time_ms = std::chrono::duration<double, std::milli>(t_end - t_start).count();
-
-	//std::cout << "matResult div maxv  time is:: " << elapsed_time_ms << endl;
-
-
-
-	//double* q0 = 0, * q1 = 0, * q2 = 0, * q3 = 0;
-
-	//Mat sum, sqsum;
-	//integral(matSrc, sum, sqsum, CV_64F);
-
-	//q0 = (double*)sqsum.data;
-	//q1 = q0 + pTemplData->vecPyramid[iLayer].cols;
-	//q2 = (double*)(sqsum.data + pTemplData->vecPyramid[iLayer].rows * sqsum.step);
-	//q3 = q2 + pTemplData->vecPyramid[iLayer].cols;
-
-	//double* p0 = (double*)sum.data;
-	//double* p1 = p0 + pTemplData->vecPyramid[iLayer].cols;
-	//double* p2 = (double*)(sum.data + pTemplData->vecPyramid[iLayer].rows * sum.step);
-	//double* p3 = p2 + pTemplData->vecPyramid[iLayer].cols;
-
-	//int sumstep = sum.data ? (int)(sum.step / sizeof(double)) : 0;
-	//int sqstep = sqsum.data ? (int)(sqsum.step / sizeof(double)) : 0;
-
-	////
-	//double dTemplMean0 = pTemplData->vecTemplMean[iLayer][0];
-	//double dTemplNorm = pTemplData->vecTemplNorm[iLayer];
-	//double dInvArea = pTemplData->vecInvArea[iLayer];
-	////
-
-	//int i, j;
-	//for (i = 0; i < matResult.rows; i++)
-	//{
-	//	float* rrow = matResult.ptr<float>(i);
-	//	int idx = i * sumstep;
-	//	int idx2 = i * sqstep;
-
-	//	for (j = 0; j < matResult.cols; j += 1, idx += 1, idx2 += 1)
-	//	{
-	//		if (j==1 && i==15)
-	//		{
-	//			int c = 0;
-	//			c++;
-	//		}
-
-
-	//		double num = rrow[j], t;
-	//		double wndMean2 = 0, wndSum2 = 0;
-
-	//		t = p0[idx] - p1[idx] - p2[idx] + p3[idx];
-	//		wndMean2 += t * t;
-	//		num -= t * dTemplMean0;
-	//		wndMean2 *= dInvArea;
-
-
-	//		t = q0[idx2] - q1[idx2] - q2[idx2] + q3[idx2];
-	//		wndSum2 += t;
-
-
-	//		//t = std::sqrt (MAX (wndSum2 - wndMean2, 0)) * dTemplNorm;
-
-	//		double diff2 = MAX(wndSum2 - wndMean2, 0);
-	//		if (diff2 <= std::min(0.5, 10 * FLT_EPSILON * wndSum2))
-	//			t = 0; // avoid rounding errors
-	//		else
-	//			t = std::sqrt(diff2) * dTemplNorm;
-
-	//		if (fabs(num) < t)
-	//			num /= t;
-	//		else if (fabs(num) < t * 1.125)
-	//			num = num > 0 ? 1 : -1;
-	//		else
-	//			num = 0;
-
-	//		rrow[j] = (float)num;
-	//	}
-	//}
 }
 
 
@@ -855,16 +640,7 @@ void CMatchTool::CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv
 void CMatchTool::MatchTemplate(cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD)
 {
 	matchTemplate(matSrc, pTemplData->vecPyramid[iLayer], matResult, CV_TM_CCOEFF);
-
 	CCOEFF_Denominator(matSrc, pTemplData, matResult, iLayer);
-
-	//if (pTemplData->vecResultEqual1[iLayer])
-	//{
-	//	matResult = Scalar::all(1);
-	//	return;
-	//}
-
-	//matResult = matResult / pTemplData->vecResultScoreMax[iLayer];
 }
 void CMatchTool::GetRotatedROI(Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI)
 {
@@ -1119,9 +895,4 @@ void CMatchTool::SortPtWithCenter(vector<Point2f>& vecSort)
 	for (int i = 0; i < iSize; i++)
 		vecSort[i] = vecPtAngle[i].first;
 }
-
-double g_dCompensationX = 0;//補償ScrollBar取整數造成的誤差
-double g_dCompensationY = 0;
-#define BAR_SIZE 100
-
 

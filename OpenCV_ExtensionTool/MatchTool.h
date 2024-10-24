@@ -249,8 +249,7 @@ private:
 	bool m_IsHighPrecision = false;
 	bool m_IsSubPixelMatch = false;
 	void CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer);
-	void AddObjToMatchMap(map<Point, vector<s_MatchParameter>>& mapVec, s_MatchParameter newObj, Size patternSz);
-	void AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_MatchParameter newObj, Size patternSz);
+	void AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_MatchParameter newObj);
 	int GetTopLayer (Mat* matTempl, int iMinDstLength);
 	void MatchTemplate (cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD);
 	void GetRotatedROI (Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI);
