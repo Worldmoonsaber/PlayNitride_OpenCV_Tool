@@ -47,8 +47,18 @@ CMatchTool::CMatchTool()
 
 void CMatchTool::LearnPattern(Mat imgPattern)
 {
+
 	m_TemplData.clear();
-	m_matDst = imgPattern.clone();
+
+
+	if (imgPattern.channels() == 3)
+		cvtColor(imgPattern, m_matDst, COLOR_BGRA2GRAY); // 轉為黑白
+	else if (imgPattern.channels() == 1)
+		m_matDst = imgPattern.clone();
+	else if (imgPattern.channels() == 4)
+		cvtColor(imgPattern, m_matDst, COLOR_RGBA2GRAY); // 轉為黑白
+
+	imgPattern.release();
 	int iTopLayer = GetTopLayer(&m_matDst, (int)sqrt((double)m_iMinReduceArea));
 	buildPyramid(m_matDst, m_TemplData.vecPyramid, iTopLayer);
 	s_TemplData* templData = &m_TemplData;
@@ -214,7 +224,15 @@ void CMatchTool::AddObjToMatchVec(vector<vector<s_MatchParameter>>& VecMatch, s_
 bool CMatchTool::Match(Mat Img, vector<s_SingleTargetMatch>& result)
 {
 
-	m_matSrc = Img.clone();
+	if(Img.channels() == 3)
+		cvtColor(Img, m_matSrc, COLOR_BGRA2GRAY); // 轉為黑白
+	else if (Img.channels() == 1)
+		m_matSrc = Img.clone();
+	else if (Img.channels() == 4)
+		cvtColor(Img, m_matSrc, COLOR_RGBA2GRAY); // 轉為黑白
+
+	Img.release();
+
 
 	if (!m_TemplData.bIsPatternLearned)
 		return false;
