@@ -18,7 +18,6 @@ struct s_TemplData
 	vector<double> vecTemplNorm;
 	vector<double> vecInvArea;
 	vector<bool> vecResultEqual1;
-	vector<double> vecResultScoreMax;
 
 	bool bIsPatternLearned;
 	int iBorderColor;
@@ -29,7 +28,6 @@ struct s_TemplData
 		vector<double> ().swap (vecInvArea);
 		vector<Scalar> ().swap (vecTemplMean);
 		vector<bool> ().swap (vecResultEqual1);
-		vector<double>().swap(vecResultScoreMax);
 
 	}
 	void resize (int iSize)
@@ -38,7 +36,6 @@ struct s_TemplData
 		vecTemplNorm.resize (iSize, 0);
 		vecInvArea.resize (iSize, 1);
 		vecResultEqual1.resize (iSize, false);
-		vecResultScoreMax.resize(iSize, 0);
 	}
 	s_TemplData ()
 	{

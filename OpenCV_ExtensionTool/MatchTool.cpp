@@ -47,9 +47,11 @@ CMatchTool::CMatchTool()
 
 void CMatchTool::LearnPattern(Mat imgPattern)
 {
+	if (imgPattern.empty())
+		return;
+
 
 	m_TemplData.clear();
-
 
 	if (imgPattern.channels() == 3)
 		cvtColor(imgPattern, m_matDst, COLOR_BGRA2GRAY); // 轉為黑白
@@ -92,20 +94,16 @@ void CMatchTool::LearnPattern(Mat imgPattern)
 		templData->vecInvArea[i] = invArea;
 		templData->vecTemplMean[i] = templMean;
 		templData->vecTemplNorm[i] = templNorm;
-
-		Mat matImg;
-		matchTemplate(templData->vecPyramid[i], templData->vecPyramid[i], matImg, CV_TM_CCOEFF);
-		double maxv;
-		minMaxLoc(matImg, 0, &maxv, 0, 0);
-		templData->vecResultScoreMax[i] = maxv;
-		matImg.release();
-
 	}
 	templData->bIsPatternLearned = true;
 }
 
 void CMatchTool::LearnPattern(Mat imgPattern, int MaxMatchCount, double score, double ToleranceAngle, double MaxOverlap, double MinReduceArea)
 {
+	if (imgPattern.empty())
+		return;
+
+
 	m_iMaxPos = MaxMatchCount;
 
 	if (score > 0.99)
@@ -643,13 +641,6 @@ void CMatchTool::CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv
 		return;
 	}
 
-	double maxv;
-	minMaxLoc(matSrc, 0, &maxv, 0, 0);
-
-	if (maxv < pTemplData->vecResultScoreMax[iLayer])
-		maxv = pTemplData->vecResultScoreMax[iLayer];
-
-	matResult /= maxv;
 
 }
 
@@ -657,7 +648,7 @@ void CMatchTool::CCOEFF_Denominator(cv::Mat& matSrc, s_TemplData* pTemplData, cv
 
 void CMatchTool::MatchTemplate(cv::Mat& matSrc, s_TemplData* pTemplData, cv::Mat& matResult, int iLayer, bool bUseSIMD)
 {
-	matchTemplate(matSrc, pTemplData->vecPyramid[iLayer], matResult, CV_TM_CCOEFF);
+	matchTemplate(matSrc, pTemplData->vecPyramid[iLayer], matResult, CV_TM_CCORR_NORMED);
 	CCOEFF_Denominator(matSrc, pTemplData, matResult, iLayer);
 }
 void CMatchTool::GetRotatedROI(Mat& matSrc, Size size, Point2f ptLT, double dAngle, Mat& matROI)
