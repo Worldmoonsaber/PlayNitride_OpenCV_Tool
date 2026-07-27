@@ -4,23 +4,21 @@
 #include<opencv2/highgui/highgui.hpp>
 #include<opencv2/imgproc/imgproc.hpp> //mophorlogical operation
 #include<opencv2/core.hpp>
+#include<vector>
 
 using namespace cv;
 using namespace std;
-
-struct FilterCondition
-{
-    string FeatureName;
-    float  MaximumValue;
-    float  MinimumValue;
-    bool Enable;
-};
 
 class BlobInfo
 {
 public:
     BlobInfo(vector<Point> vArea, vector<Point> vContour);
     BlobInfo();
+    BlobInfo(Mat ImgRegion);
+    BlobInfo(vector<Point> vContour);
+    BlobInfo(vector<Point> vMainContour,vector<vector<Point>> vHollowContour);
+
+    void CaculateBlob(vector<Point> vArea, vector<Point> vContour);
     void Release();
     int Area();
 
@@ -62,7 +60,8 @@ public:
     int Ymin();
     int Xmax();
     int Ymax();
-
+    int Width();
+    int Height();
     /// <summary>
     /// 蓬鬆度
     /// </summary>
@@ -82,6 +81,19 @@ public:
     float Roundness();
 
     float Sides();
+
+
+    /// <summary>
+    /// Topology 才有用的屬性
+    /// </summary>
+    /// <returns></returns>
+    vector<vector<Point>> contourHollow();
+
+    /// <summary>
+    /// Topology 才有用的屬性
+    /// </summary>
+    /// <returns></returns>
+    vector<Point> contourMain();
 
 private:
 
@@ -108,75 +120,17 @@ private:
     float _compactness = -1;
     float _roundness = -1;
     float _sides = -1;
-};
+    float _Width = -1;
+    float _Height = -1;
 
-class BlobFilter
-{
-public:
-    BlobFilter();
-    ~BlobFilter();
+    vector<Point> _contourMain;
+    vector<vector<Point>> _contourHollow;
 
-    map<string, FilterCondition> DictionaryFilterCondition;
-
-    bool IsEnableArea();
-    float MaxArea();
-    float MinArea();
-
-    bool IsEnableXbound();
-    float MaxXbound();
-    float MinXbound();
-
-    bool IsEnableYbound();
-    float MaxYbound();
-    float MinYbound();
-
-
-    void SetEnableArea(bool enable);
-    void SetMaxArea(float value);
-    void SetMinArea(float value);
-
-    void SetEnableXbound(bool enable);
-    void SetMaxXbound(float value);
-    void SetMinXbound(float value);
-
-    void SetEnableYbound(bool enable);
-    void SetMaxYbound(float value);
-    void SetMinYbound(float value);
-
-    void SetEnableGrayLevel(bool enable);
-    void SetMaxGrayLevel(float value);
-    void SetMinGrayLevel(float value);
-
-
-private:
-    map<string, FilterCondition> map;
-
-    void _setMaxPokaYoke(string title, float value);
-    void _setMinPokaYoke(string title, float value);
 };
 
 /// <summary>
-/// 
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <param name="maxArea">保護措施 如果不需要這麼大的Region 可以在這邊先行用條件濾掉 避免記憶體堆積問題產生</param>
-/// <returns></returns>
-vector<BlobInfo> RegionPartition(Mat ImgBinary, int maxArea, int minArea);//; int maxArea = INT_MAX - 2, int minArea = -1);目前直接使用吃預設值好像會出Bug避免錯誤使用先包起來
-vector<BlobInfo> RegionPartition(Mat ImgBinary);
-vector<BlobInfo> RegionPartition(Mat ImgBinary, BlobFilter filter);
-
-/// <summary>
-/// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
+/// 速度與記憶體使用量都在可接受範圍 建議使用這個方法
 /// </summary>
 /// <param name="ImgBinary"></param>
 /// <returns></returns>
-vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary, int maxArea, int minArea);
-/// <summary>
-/// 當Region數量極少時( 數量 < 500) 多緒對於速度提升沒有幫助,此時建議用這個方法
-/// </summary>
-/// <param name="ImgBinary"></param>
-/// <returns></returns>
-vector<BlobInfo> RegionPartitionNonMultiThread(Mat ImgBinary);
-
-
-
+vector<BlobInfo> RegionPartitionTopology(Mat ImgBinary);
