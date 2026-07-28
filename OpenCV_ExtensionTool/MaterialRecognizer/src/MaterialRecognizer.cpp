@@ -1,4 +1,4 @@
-#include "material/MaterialRecognizer.h"
+﻿#include "material/MaterialRecognizer.h"
 
 #include <opencv2/core/persistence.hpp>
 
@@ -149,6 +149,8 @@ void MaterialRecognizer::AddFeatureSample(
     trained_ = false;
 }
 
+// 由所有已加入樣本建立標準化參數、PCA（選用）及各類中心點。
+// Builds normalization, optional PCA, and class centroids from all samples.
 void MaterialRecognizer::Train()
 {
     if (samples_.empty())
@@ -353,6 +355,8 @@ void MaterialRecognizer::Train()
     trained_ = true;
 }
 
+// 先擷取影像特徵，再交由共用的特徵向量分類流程處理。
+// Extracts image features, then delegates to the shared vector classifier.
 RecognitionResult MaterialRecognizer::Recognize(
     const cv::Mat& image,
     const cv::Mat& roiMask) const
@@ -367,6 +371,8 @@ RecognitionResult MaterialRecognizer::Recognize(
     return RecognizeFeature(extracted.values);
 }
 
+// 計算各類距離、相似度與信心分數，最後套用拒判門檻。
+// Computes class distance, similarity, confidence, then applies rejection limits.
 RecognitionResult MaterialRecognizer::RecognizeFeature(
     const std::vector<float>& feature) const
 {
@@ -484,6 +490,8 @@ RecognitionResult MaterialRecognizer::RecognizeFeature(
     return result;
 }
 
+// 保存完整模型，讓產線啟動時無須重新訓練。
+// Saves the complete model so production startup does not need retraining.
 void MaterialRecognizer::Save(const std::string& path) const
 {
     if (samples_.empty())
@@ -563,6 +571,8 @@ void MaterialRecognizer::Save(const std::string& path) const
     storage << "]";
 }
 
+// 載入前驗證版本及必要欄位，避免使用不相容或不完整的模型。
+// Validates version and required fields before accepting a persisted model.
 void MaterialRecognizer::Load(const std::string& path)
 {
     cv::FileStorage storage(path, cv::FileStorage::READ);

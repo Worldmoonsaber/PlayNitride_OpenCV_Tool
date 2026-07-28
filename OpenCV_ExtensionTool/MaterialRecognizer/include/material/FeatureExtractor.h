@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <opencv2/core.hpp>
 
@@ -11,6 +11,8 @@ namespace material
 
 struct FeatureOptions
 {
+    // 是否啟用紋理特徵；目前光斑等級模型使用色彩特徵模式。
+    // Enables texture features; the current spot-level model uses color mode.
     bool enableTextureFeatures = true;
     int pyramidLevels = 2;
     int maxImageSide = 1024;
@@ -32,6 +34,8 @@ struct FeatureOptions
 
 struct FeatureRange
 {
+    // 記錄特徵群組在完整向量中的位置，供權重與診斷使用。
+    // Locates a feature group in the full vector for weighting and diagnostics.
     std::string name;
     std::size_t begin = 0;
     std::size_t length = 0;
@@ -46,6 +50,8 @@ struct ExtractionResult
 class FeatureExtractor
 {
 public:
+    // 從影像及選用遮罩擷取固定長度的特徵向量。
+    // Extracts a fixed-length feature vector from an image and optional mask.
     explicit FeatureExtractor(FeatureOptions options = {});
 
     const FeatureOptions& options() const noexcept;

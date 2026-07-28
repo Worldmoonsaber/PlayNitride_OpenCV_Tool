@@ -23,8 +23,8 @@ using namespace std;
 namespace
 {
 
-// Commissioning-only configuration. Keep this near main because these values
-// are changed only while creating a model for a new product.
+// 僅供建模導入使用；建立新產品模型時修改這些數值並保留在 main。
+// Commissioning only; keep these values in main and update them for a new product.
 MaterialProductRecipe CreateProductRecipe()
 {
     constexpr std::array<int, 7> columnCenters = {
@@ -45,8 +45,8 @@ MaterialProductRecipe CreateProductRecipe()
     recipe.databaseDirectory =
         L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles";
 
-    // Set true once after changing this commissioning block, then restore it
-    // to false so production startup loads the saved database.
+    // 修改建模設定後設為 true 執行一次，產線使用時改回 false 載入既有資料庫。
+    // Set true once after changing commissioning settings; restore false for production loading.
     recipe.forceRetrain = false;
     recipe.recognizerOptions.feature.enableTextureFeatures = false;
     recipe.recognizerOptions.feature.maxImageSide = 1024;
@@ -80,7 +80,7 @@ int main()
     MaterialProfile materialProfile(materialRecipe);
     materialProfile.Initialize();
 
-    cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\LUCID_ATX245S-C_230200261__20260723134727884_image0.bmp");
+    cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\TEST SAMPLE\\60-C.bmp");// materialProfile.LoadStandardImage();
 
     //讀取光斑數據
     std::unordered_map<double, Mat> dict;
@@ -136,10 +136,27 @@ int main()
                 vY.push_back(result[j].ptRT.y);
 
                 double minValueX = *std::min_element(vX.begin(), vX.end());
+
+                if (minValueX < 0)
+                    minValueX = 0;
+
                 double maxValueX = *std::max_element(vX.begin(), vX.end());
 
+                if (maxValueX >= imgSample.cols)
+                    maxValueX = imgSample.cols - 1;
+
+
                 double minValueY = *std::min_element(vY.begin(), vY.end());
+
+                if (minValueY < 0)
+                    minValueY = 0;
+
                 double maxValueY = *std::max_element(vY.begin(), vY.end());
+
+                if (maxValueY>= imgSample.rows)
+                    maxValueY = imgSample.rows - 1;
+
+
 
                 cv::Rect roi((int)minValueX, (int)minValueY,(int)(maxValueX-minValueX), (int)(maxValueY - minValueY));
                 cv::Mat crop = imgSample(roi);

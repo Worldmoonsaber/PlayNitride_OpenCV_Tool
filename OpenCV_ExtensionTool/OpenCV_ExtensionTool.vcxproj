@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -98,7 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
+    <AdditionalIncludeDirectories>$(ProjectDir)MaterialRecognizer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><LanguageStandard>stdcpp17</LanguageStandard></ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -112,7 +112,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
+    <AdditionalIncludeDirectories>$(ProjectDir)MaterialRecognizer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><LanguageStandard>stdcpp17</LanguageStandard></ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -127,7 +127,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
+    <AdditionalIncludeDirectories>$(ProjectDir)MaterialRecognizer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><LanguageStandard>stdcpp17</LanguageStandard></ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -142,7 +142,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
+    <AdditionalIncludeDirectories>$(ProjectDir)MaterialRecognizer\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories><LanguageStandard>stdcpp17</LanguageStandard></ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -161,16 +161,16 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatchTool.cpp" />
-    <ClCompile Include="MaterialMatcher.cpp" />
+    
     <ClCompile Include="OpenCV_DEBUG_Tool.cpp" />
     <ClCompile Include="OpenCV_Extension_Tool.cpp" />
-  </ItemGroup>
+  <ClCompile Include="MaterialRecognizer\src\FeatureExtractor.cpp" /><ClCompile Include="MaterialRecognizer\src\MaterialRecognizer.cpp" /><ClCompile Include="MaterialProfile.cpp" /></ItemGroup>
   <ItemGroup>
     <ClInclude Include="MatchTool.h" />
-    <ClInclude Include="MaterialMatcher.h" />
+    
     <ClInclude Include="OpenCV_DEBUG_Tool.h" />
     <ClInclude Include="OpenCV_Extension_Tool.h" />
-  </ItemGroup>
+  <ClInclude Include="MaterialRecognizer\include\material\FeatureExtractor.h" /><ClInclude Include="MaterialRecognizer\include\material\MaterialRecognizer.h" /><ClInclude Include="MaterialProfile.h" /></ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

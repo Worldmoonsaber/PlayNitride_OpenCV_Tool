@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "material/FeatureExtractor.h"
 
@@ -13,6 +13,8 @@ namespace material
 
 struct RecognizerOptions
 {
+    // 分類器訓練、拒判及各特徵群組權重設定。
+    // Classifier training, rejection, and feature-group weight settings.
     FeatureOptions feature;
 
     bool enablePca = true;
@@ -36,6 +38,8 @@ struct RecognizerOptions
 
 struct CandidateScore
 {
+    // 單一候選類別的排序分數及分群相似度。
+    // Ranking scores and per-group similarity for one candidate class.
     std::string label;
     double confidence = 0.0;
     double similarity = 0.0;
@@ -45,6 +49,8 @@ struct CandidateScore
 
 struct RecognitionResult
 {
+    // 最佳類別、是否通過拒判，以及依分數排序的全部候選。
+    // Best class, rejection decision, and all candidates ordered by score.
     std::string label;
     bool accepted = false;
     double confidence = 0.0;
@@ -56,6 +62,8 @@ struct RecognitionResult
 class MaterialRecognizer
 {
 public:
+    // 清除舊樣本後加入各類樣本，再呼叫 Train 建立模型。
+    // Clear old samples, add labeled samples, then call Train to build a model.
     explicit MaterialRecognizer(RecognizerOptions options = {});
 
     void Clear();

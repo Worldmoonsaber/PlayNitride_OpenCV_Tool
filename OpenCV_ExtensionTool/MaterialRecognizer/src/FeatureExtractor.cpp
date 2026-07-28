@@ -1,4 +1,4 @@
-#include "material/FeatureExtractor.h"
+﻿#include "material/FeatureExtractor.h"
 
 #include <opencv2/imgproc.hpp>
 
@@ -215,6 +215,8 @@ const FeatureOptions& FeatureExtractor::options() const noexcept
     return options_;
 }
 
+// 統一管理縮圖、色彩及選用紋理特徵，並同步建立特徵配置表。
+// Coordinates resizing, color/optional texture features, and feature layout.
 ExtractionResult FeatureExtractor::Extract(
     const cv::Mat& image,
     const cv::Mat& roiMask) const
@@ -290,6 +292,8 @@ ExtractionResult FeatureExtractor::Extract(
     return result;
 }
 
+// 將輸入影像正規化成後續特徵演算法可穩定處理的灰階影像。
+// Normalizes input into a grayscale image suitable for stable feature extraction.
 cv::Mat FeatureExtractor::PrepareImage(
     const cv::Mat& image,
     cv::Mat& mask) const
@@ -384,6 +388,8 @@ cv::Mat FeatureExtractor::PrepareImage(
     return normalized;
 }
 
+// 色彩特徵保留光斑等級間的重要通道比例與亮度變異。
+// Color features preserve channel ratios and variation that separate spot levels.
 std::vector<float> FeatureExtractor::ExtractColor(
     const cv::Mat& image,
     const cv::Mat& mask) const
