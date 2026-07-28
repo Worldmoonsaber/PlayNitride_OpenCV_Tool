@@ -80,7 +80,9 @@ int main()
     MaterialProfile materialProfile(materialRecipe);
     materialProfile.Initialize();
 
-    cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\TEST SAMPLE\\60-C.bmp");// materialProfile.LoadStandardImage();
+    //cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\TEST SAMPLE\\60-C.bmp");// 
+    
+    cv::Mat imgSample = materialProfile.LoadStandardImage();
 
     //讀取光斑數據
     std::unordered_map<double, Mat> dict;
@@ -107,15 +109,11 @@ int main()
         vector<s_SingleTargetMatch> result;
         matchTool.Match(imgSample, result);
 
-        Mat gray1;
-        cvtColor(imgSample, gray1, COLOR_BGR2GRAY);
-
         Mat tmp1 = imgSample.clone();
 
         if (result.size() > 0)
         {
             putText(tmp1, to_string(i), Point(100,500), FONT_HERSHEY_COMPLEX, 20, Scalar(0, 0, 255), 2, 1);
-
 
             for(int j = 0; j < result.size(); j++)
             {
@@ -156,8 +154,6 @@ int main()
                 if (maxValueY>= imgSample.rows)
                     maxValueY = imgSample.rows - 1;
 
-
-
                 cv::Rect roi((int)minValueX, (int)minValueY,(int)(maxValueX-minValueX), (int)(maxValueY - minValueY));
                 cv::Mat crop = imgSample(roi);
 
@@ -174,6 +170,9 @@ int main()
                     cout << "Distance   : "
                         << materialResult.distance << endl;
 
+                    double dConfidenceWeight = 0;
+					double dConfidenceSum = 0;
+
                     for (const auto& candidate :
                          materialResult.candidates)
                     {
@@ -184,6 +183,9 @@ int main()
                             << "  distance="
                             << candidate.distance
                             << endl;
+
+                        dConfidenceWeight += candidate.confidence * std::stoi(candidate.label);
+                        dConfidenceSum += candidate.confidence;
                     }
 
                     cout << "----------------------------" << endl;
@@ -191,9 +193,11 @@ int main()
                     const int materialLevel =
                         std::stoi(materialResult.label);
 
+					int nWeightedLevel =(int)( dConfidenceWeight / dConfidenceSum);
+
                     putText(
                         tmp1,
-                        to_string(materialLevel),
+                        to_string(nWeightedLevel),
                         ptC,
                         FONT_HERSHEY_COMPLEX,
                         1,
@@ -212,21 +216,12 @@ int main()
                 }
 			}
             
-
-
-
-
-
-
-
-
-
         }
 
         system("pause");
     }
 
-	system("pause");
+	//system("pause");
 
 }
 
