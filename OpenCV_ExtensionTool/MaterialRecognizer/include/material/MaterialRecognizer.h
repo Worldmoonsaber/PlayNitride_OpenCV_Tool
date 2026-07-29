@@ -20,13 +20,13 @@ struct RecognizerOptions
     bool enablePca = true;
     double pcaRetainedVariance = 0.98;
     int maxPcaComponents = 64;
-    double covarianceShrinkage = 0.20;
+    double covarianceShrinkage = 0.6;
 
-    double rejectConfidence = 0.55;
+    double rejectConfidence = 0.4;
     double rejectDistance = -1.0;
 
     std::map<std::string, double> featureWeights = {
-        {"Color", 2.00},
+        {"Color", 1.00},
         {"LBP", 1.40},
         {"Laws", 1.30},
         {"Gabor", 1.10},

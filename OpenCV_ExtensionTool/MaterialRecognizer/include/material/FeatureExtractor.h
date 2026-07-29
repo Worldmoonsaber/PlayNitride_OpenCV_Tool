@@ -13,7 +13,7 @@ struct FeatureOptions
 {
     // 是否啟用紋理特徵；目前光斑等級模型使用色彩特徵模式。
     // Enables texture features; the current spot-level model uses color mode.
-    bool enableTextureFeatures = true;
+    bool enableTextureFeatures = false;
     int pyramidLevels = 2;
     int maxImageSide = 1024;
 

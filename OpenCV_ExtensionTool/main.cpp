@@ -25,63 +25,121 @@ namespace
 
 // 僅供建模導入使用；建立新產品模型時修改這些數值並保留在 main。
 // Commissioning only; keep these values in main and update them for a new product.
-MaterialProductRecipe CreateProductRecipe()
-{
-    constexpr std::array<int, 7> columnCenters = {
-        436, 1060, 1668, 2272, 2880, 3484, 4088};
-    constexpr std::array<int, 10> rowCenters = {
-        864, 1212, 1552, 1892, 2236,
-        2572, 2916, 3260, 3600, 3940};
-    constexpr std::array<int, 4> trainingColumnIndices = {0, 2, 4, 6};
-    constexpr std::array<const char*, 4> labels = {"40", "60", "80", "100"};
-    constexpr int roiWidth = 420;
-    constexpr int roiHeight = 250;
+    MaterialProductRecipe CreateProductRecipe()
+    {
+        // 正常訓練資料結構：
+        // TrainingSample\<標籤>\*.bmp，例如 TrainingSample\40\40-1.bmp。
+        // Normal layout:
+        // TrainingSample\<label>\*.bmp, for example TrainingSample\40\40-1.bmp.
+        const std::filesystem::path trainingRoot =
+            L"C:\\Image\\\u5149\u6591 LEVEL\\TrainingSample";
 
-    MaterialProductRecipe recipe;
-    recipe.databasePath =
-        L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\TrainingSampleProduct_ColorV2.yml";
+        // 修改訓練資料後設為 true 執行一次；模型建立後，上線改回 false。
+        // Set true once after changing samples; switch back to false in production.
+        constexpr bool forceRetrain = true;
 
-    // 修改建模設定後設為 true 執行一次，產線使用時改回 false 載入既有資料庫。
-    // Set true once after changing commissioning settings; restore false for production loading.
-    //recipe.forceRetrain = false;
-    //recipe.recognizerOptions.feature.enableTextureFeatures = false;
-    //recipe.recognizerOptions.feature.maxImageSide = 1024;
-    //recipe.recognizerOptions.rejectConfidence = 0.40;
-    //recipe.recognizerOptions.enablePca = false;
-    //recipe.recognizerOptions.covarianceShrinkage = 1.0;
-    //recipe.recognizerOptions.featureWeights["Color"] = 1.0;
+        const std::set<std::wstring> supportedExtensions = {
+            L".bmp", L".png", L".jpg", L".jpeg", L".tif", L".tiff" };
 
-    //for (std::size_t classIndex = 0; classIndex < labels.size(); ++classIndex)
-    //{
-    //    const int centerX = columnCenters[trainingColumnIndices[classIndex]];
-    //    for (const int centerY : rowCenters)
-    //    {
-    //        recipe.trainingRois.push_back({
-    //            labels[classIndex],
-    //            cv::Rect(
-    //                centerX - roiWidth / 2,
-    //                centerY - roiHeight / 2,
-    //                roiWidth,
-    //                roiHeight)});
-    //    }
-    //}
-    return recipe;
-}
+        if (!std::filesystem::is_directory(trainingRoot))
+        {
+            throw std::runtime_error(
+                "TrainingSample directory does not exist: " +
+                trainingRoot.string());
+        }
+
+        MaterialProductRecipe recipe;
+        recipe.databasePath =
+            L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\"
+            L"TrainingSampleProduct_ColorV2_new.yml";
+        recipe.forceRetrain = forceRetrain;
+        //recipe.recognizerOptions.feature.enableTextureFeatures = false;
+        //recipe.recognizerOptions.feature.maxImageSide = 1024;
+        //recipe.recognizerOptions.rejectConfidence = 0.40;
+        //recipe.recognizerOptions.enablePca = false;
+        //recipe.recognizerOptions.covarianceShrinkage = 1.0;
+        //recipe.recognizerOptions.featureWeights["Color"] = 1.0;
+
+        for (const std::filesystem::directory_entry& labelDirectory :
+            std::filesystem::directory_iterator(trainingRoot))
+        {
+            if (!labelDirectory.is_directory())
+            {
+                continue;
+            }
+
+            const std::string label =
+                labelDirectory.path().filename().string();
+            std::size_t labelSampleCount = 0;
+            for (const std::filesystem::directory_entry& sampleFile :
+                std::filesystem::directory_iterator(labelDirectory.path()))
+            {
+                if (!sampleFile.is_regular_file())
+                {
+                    continue;
+                }
+
+                std::wstring extension =
+                    sampleFile.path().extension().wstring();
+                std::transform(
+                    extension.begin(),
+                    extension.end(),
+                    extension.begin(),
+                    ::towlower);
+                if (supportedExtensions.count(extension) != 0)
+                {
+                    recipe.trainingImages.push_back(
+                        { label, sampleFile.path() });
+                    ++labelSampleCount;
+                }
+            }
+
+            std::cout
+                << "Training label " << label
+                << ": " << labelSampleCount << " images\n";
+        }
+
+        if (recipe.trainingImages.empty())
+        {
+            throw std::runtime_error(
+                "No training images were found under TrainingSample.");
+        }
+
+        std::cout
+            << "Training source: " << trainingRoot.string() << '\n'
+            << "Database path : " << recipe.databasePath.string() << '\n'
+            << "Model mode    : "
+            << (recipe.forceRetrain
+                ? "retrain from TrainingSample"
+                : "load database; train only when database is missing")
+            << '\n';
+        return recipe;
+    }
+
+
+    double Decay(double score)
+    {
+        return std::pow(score, 3.0);
+    }
 
 } // namespace
 
 int main()
 {
     //-----讀取已有的訓練模型
-    MaterialProductRecipe materialRecipe;
-    materialRecipe.databasePath =
-        L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\TrainingSampleProduct_ColorV2.yml";
-    materialRecipe.forceRetrain = false;
+    //MaterialProductRecipe materialRecipe;
+    //materialRecipe.databasePath =
+    //    L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\TrainingSampleProduct_ColorV2.yml";
+    //materialRecipe.forceRetrain = false;
+    //MaterialProfile materialProfile(materialRecipe);
+    //materialProfile.Initialize();
+
+	//-----讀取光斑影像
+    MaterialProductRecipe materialRecipe= CreateProductRecipe();
     MaterialProfile materialProfile(materialRecipe);
     materialProfile.Initialize();
 
 
-    //cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\TEST SAMPLE\\60-C.bmp");// 
     
     cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\擷取DWDWDFWDWDDW.bmp");
 
@@ -184,8 +242,8 @@ int main()
                             << candidate.distance
                             << endl;
 
-                        dConfidenceWeight += candidate.confidence * std::stoi(candidate.label);
-                        dConfidenceSum += candidate.confidence;
+                        dConfidenceWeight += Decay(candidate.confidence) * std::stoi(candidate.label);
+                        dConfidenceSum += Decay(candidate.confidence);
                     }
 
                     cout << "----------------------------" << endl;
@@ -193,7 +251,14 @@ int main()
                     const int materialLevel =
                         std::stoi(materialResult.label);
 
-					int nWeightedLevel =(int)( dConfidenceWeight / dConfidenceSum);
+                    int nWeightedLevel = (int)(dConfidenceWeight / dConfidenceSum);
+
+                    cout
+                        << "  nWeightedLevel="
+                        << nWeightedLevel
+                        << endl;
+
+                    cout << "***************************" << endl;
 
                     putText(
                         tmp1,
@@ -217,6 +282,7 @@ int main()
 			}
             
         }
+
 
         system("pause");
     }
