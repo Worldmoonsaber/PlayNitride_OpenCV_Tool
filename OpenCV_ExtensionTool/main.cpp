@@ -38,37 +38,33 @@ MaterialProductRecipe CreateProductRecipe()
     constexpr int roiHeight = 250;
 
     MaterialProductRecipe recipe;
-    recipe.productId = "DefaultProduct";
-    recipe.standardImagePath =
-        L"C:\\Image\\\u5149\u6591 LEVEL\\"
-        L"\u64f7\u53d6DWDWDFWDWDDW.bmp";
-    recipe.databaseDirectory =
-        L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles";
+    recipe.databasePath =
+        L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\TrainingSampleProduct_ColorV2.yml";
 
     // 修改建模設定後設為 true 執行一次，產線使用時改回 false 載入既有資料庫。
     // Set true once after changing commissioning settings; restore false for production loading.
-    recipe.forceRetrain = false;
-    recipe.recognizerOptions.feature.enableTextureFeatures = false;
-    recipe.recognizerOptions.feature.maxImageSide = 1024;
-    recipe.recognizerOptions.rejectConfidence = 0.40;
-    recipe.recognizerOptions.enablePca = false;
-    recipe.recognizerOptions.covarianceShrinkage = 1.0;
-    recipe.recognizerOptions.featureWeights["Color"] = 1.0;
+    //recipe.forceRetrain = false;
+    //recipe.recognizerOptions.feature.enableTextureFeatures = false;
+    //recipe.recognizerOptions.feature.maxImageSide = 1024;
+    //recipe.recognizerOptions.rejectConfidence = 0.40;
+    //recipe.recognizerOptions.enablePca = false;
+    //recipe.recognizerOptions.covarianceShrinkage = 1.0;
+    //recipe.recognizerOptions.featureWeights["Color"] = 1.0;
 
-    for (std::size_t classIndex = 0; classIndex < labels.size(); ++classIndex)
-    {
-        const int centerX = columnCenters[trainingColumnIndices[classIndex]];
-        for (const int centerY : rowCenters)
-        {
-            recipe.trainingRois.push_back({
-                labels[classIndex],
-                cv::Rect(
-                    centerX - roiWidth / 2,
-                    centerY - roiHeight / 2,
-                    roiWidth,
-                    roiHeight)});
-        }
-    }
+    //for (std::size_t classIndex = 0; classIndex < labels.size(); ++classIndex)
+    //{
+    //    const int centerX = columnCenters[trainingColumnIndices[classIndex]];
+    //    for (const int centerY : rowCenters)
+    //    {
+    //        recipe.trainingRois.push_back({
+    //            labels[classIndex],
+    //            cv::Rect(
+    //                centerX - roiWidth / 2,
+    //                centerY - roiHeight / 2,
+    //                roiWidth,
+    //                roiHeight)});
+    //    }
+    //}
     return recipe;
 }
 
@@ -76,13 +72,18 @@ MaterialProductRecipe CreateProductRecipe()
 
 int main()
 {
-    MaterialProductRecipe materialRecipe = CreateProductRecipe();
+    //-----讀取已有的訓練模型
+    MaterialProductRecipe materialRecipe;
+    materialRecipe.databasePath =
+        L"C:\\Image\\\u5149\u6591 LEVEL\\MaterialProfiles\\TrainingSampleProduct_ColorV2.yml";
+    materialRecipe.forceRetrain = false;
     MaterialProfile materialProfile(materialRecipe);
     materialProfile.Initialize();
 
+
     //cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\TEST SAMPLE\\60-C.bmp");// 
     
-    cv::Mat imgSample = materialProfile.LoadStandardImage();
+    cv::Mat imgSample = imread("C:\\Image\\光斑 LEVEL\\擷取DWDWDFWDWDDW.bmp");
 
     //讀取光斑數據
     std::unordered_map<double, Mat> dict;
@@ -102,7 +103,6 @@ int main()
 
     for (int i = 10; i <= 100; i+=10)
     {
-
 
         CMatchTool matchTool = CMatchTool();
         matchTool.LearnPattern(dict[i], 50, 0.7, 5, 0.5, 100);
